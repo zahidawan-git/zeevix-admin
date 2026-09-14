@@ -4,484 +4,80 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZEEVIX Admin</title>
-
-<!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Firebase (compat SDKs for simplicity in a single file) -->
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
-
 <style>
-  [v-cloak] { display: none; }
-  .spinner {
-    border: 3px solid #e5e7eb;
-    border-top: 3px solid #4f46e5;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+[v-cloak]{display:none}
+.spinner{border:3px solid #e5e7eb;border-top:3px solid #4f46e5;border-radius:50%;width:20px;height:20px;animation:spin.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
-
-<!-- ============ LOGIN SCREEN ============ -->
 <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-600 to-purple-700">
-  <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl p-8">
-    <div class="text-center mb-8">
-      <h1 class="text-3xl font-extrabold text-indigo-600">ZEEVIX</h1>
-      <p class="text-sm text-gray-500 mt-1">Master Admin Panel</p>
-    </div>
-
-    <div id="loginError" class="hidden mb-4 text-sm bg-red-50 text-red-700 border border-red-200 rounded-lg px-3 py-2"></div>
-
-    <form id="loginForm" class="space-y-4">
-      <div>
-        <label class="block text-xs font-semibold text-gray-600 mb-1">Email</label>
-        <input id="loginEmail" type="email" required placeholder="admin@zeevix.com"
-          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-gray-600 mb-1">Password</label>
-        <input id="loginPassword" type="password" required placeholder="••••••••"
-          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-      </div>
-      <button type="submit" id="loginBtn"
-        class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
-        <span id="loginBtnText">Login</span>
-        <div id="loginSpinner" class="spinner hidden"></div>
-      </button>
-    </form>
-
-    <p class="text-xs text-gray-400 text-center mt-6">
-      Configure Firebase credentials in the script to enable login.
-    </p>
-  </div>
+<div class="w-full max-w-sm bg-white rounded-2xl shadow-xl p-8">
+<div class="text-center mb-8"><h1 class="text-3xl font-extrabold text-indigo-600">ZEEVIX</h1><p class="text-sm text-gray-500 mt-1">Master Admin Panel</p></div>
+<div id="loginError" class="hidden mb-4 text-sm bg-red-50 text-red-700 border border-red-200 rounded-lg px-3 py-2"></div>
+<form id="loginForm" class="space-y-4">
+<div><label class="block text-xs font-semibold text-gray-600 mb-1">Email</label><input id="loginEmail" type="email" required placeholder="admin@zeevix.com" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+<div><label class="block text-xs font-semibold text-gray-600 mb-1">Password</label><input id="loginPassword" type="password" required placeholder="••••••••" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+<button type="submit" id="loginBtn" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm transition"><span id="loginBtnText">Login</span><div id="loginSpinner" class="spinner hidden"></div></button>
+</form>
 </div>
-
-<!-- ============ DASHBOARD (hidden until logged in) ============ -->
+</div>
 <div id="dashboardScreen" class="hidden min-h-screen">
-
-  <!-- Top bar -->
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-20">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <h1 class="text-xl font-extrabold text-indigo-600">ZEEVIX</h1>
-        <span class="hidden sm:inline text-xs text-gray-400 border-l border-gray-200 pl-2">Admin Panel</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <span id="userEmailLabel" class="hidden sm:block text-xs text-gray-500"></span>
-        <button id="logoutBtn" class="text-xs font-semibold text-red-600 hover:text-red-700 border border-red-200 hover:bg-red-50 rounded-lg px-3 py-1.5 transition">
-          Logout
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
-
-    <!-- Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-      <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Total Clients</p>
-        <p id="statTotal" class="text-2xl font-bold mt-1">0</p>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Paid</p>
-        <p id="statPaid" class="text-2xl font-bold mt-1 text-green-600">0</p>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Pending</p>
-        <p id="statPending" class="text-2xl font-bold mt-1 text-amber-600">0</p>
-      </div>
-      <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-        <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Overdue</p>
-        <p id="statOverdue" class="text-2xl font-bold mt-1 text-red-600">0</p>
-      </div>
-    </div>
-
-    <!-- Add Client Card -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-      <h2 class="text-base font-bold mb-4">Add New Client</h2>
-
-      <div id="clientFormError" class="hidden mb-4 text-sm bg-red-50 text-red-700 border border-red-200 rounded-lg px-3 py-2"></div>
-      <div id="clientFormSuccess" class="hidden mb-4 text-sm bg-green-50 text-green-700 border border-green-200 rounded-lg px-3 py-2"></div>
-
-      <form id="clientForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Client / Business Name</label>
-          <input id="clientName" type="text" required placeholder="e.g., Ahmed Academy"
-            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Business Type</label>
-          <select id="businessType" required
-            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-            <option value="">Select type</option>
-            <option value="School Management">School Management</option>
-            <option value="Gym Management">Gym Management</option>
-            <option value="POS System">POS System</option>
-            <option value="Pharmacy Management">Pharmacy Management</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Payment Status</label>
-          <select id="paymentStatus" required
-            class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-            <option value="pending">Pending</option>
-            <option value="paid">Paid</option>
-            <option value="overdue">Overdue</option>
-          </select>
-        </div>
-
-        <div class="flex items-end">
-          <button type="submit" id="addClientBtn"
-            class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
-            <span id="addClientBtnText">+ Add Client &amp; Generate Key</span>
-            <div id="addClientSpinner" class="spinner hidden"></div>
-          </button>
-        </div>
-      </form>
-    </div>
-
-    <!-- Clients Table -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-        <h2 class="text-base font-bold">Clients</h2>
-        <input id="searchInput" type="text" placeholder="Search clients..."
-          class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 w-40 sm:w-56 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-      </div>
-
-      <!-- Loading -->
-      <div id="clientsLoading" class="p-8 flex justify-center">
-        <div class="spinner"></div>
-      </div>
-
-      <!-- Empty state -->
-      <div id="clientsEmpty" class="hidden p-8 text-center text-sm text-gray-400">
-        No clients yet. Add your first client above.
-      </div>
-
-      <!-- Desktop table -->
-      <div class="hidden md:block overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
-            <tr>
-              <th class="text-left px-5 py-3 font-semibold">Client</th>
-              <th class="text-left px-5 py-3 font-semibold">Business Type</th>
-              <th class="text-left px-5 py-3 font-semibold">License Key</th>
-              <th class="text-left px-5 py-3 font-semibold">Payment</th>
-              <th class="text-left px-5 py-3 font-semibold">Created</th>
-              <th class="text-left px-5 py-3 font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="clientsTableBody" class="divide-y divide-gray-100"></tbody>
-        </table>
-      </div>
-
-      <!-- Mobile cards -->
-      <div id="clientsCardList" class="md:hidden divide-y divide-gray-100"></div>
-    </div>
-  </main>
+<header class="bg-white border-b border-gray-200 sticky top-0 z-20"><div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between"><div class="flex items-center gap-2"><h1 class="text-xl font-extrabold text-indigo-600">ZEEVIX</h1><span class="hidden sm:inline text-xs text-gray-400 border-l border-gray-200 pl-2">Admin Panel</span></div><div class="flex items-center gap-3"><span id="userEmailLabel" class="hidden sm:block text-xs text-gray-500"></span><button id="logoutBtn" class="text-xs font-semibold text-red-600 hover:text-red-700 border border-red-200 hover:bg-red-50 rounded-lg px-3 py-1.5 transition">Logout</button></div></div></header>
+<main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"><p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Total Clients</p><p id="statTotal" class="text-2xl font-bold mt-1">0</p></div>
+<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"><p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Paid</p><p id="statPaid" class="text-2xl font-bold mt-1 text-green-600">0</p></div>
+<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"><p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Pending</p><p id="statPending" class="text-2xl font-bold mt-1 text-amber-600">0</p></div>
+<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"><p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Overdue</p><p id="statOverdue" class="text-2xl font-bold mt-1 text-red-600">0</p></div>
 </div>
-
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5"><h2 class="text-base font-bold mb-4">Add New Client</h2><div id="clientFormError" class="hidden mb-4 text-sm bg-red-50 text-red-700 border border-red-200 rounded-lg px-3 py-2"></div><div id="clientFormSuccess" class="hidden mb-4 text-sm bg-green-50 text-green-700 border border-green-200 rounded-lg px-3 py-2"></div>
+<form id="clientForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+<div><label class="block text-xs font-semibold text-gray-600 mb-1">Client / Business Name</label><input id="clientName" type="text" required placeholder="e.g., Ahmed Academy" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
+<div><label class="block text-xs font-semibold text-gray-600 mb-1">Business Type</label><select id="businessType" required class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white"><option value="">Select type</option><option>School Management</option><option>Gym Management</option><option>POS System</option><option>Pharmacy Management</option><option>Other</option></select></div>
+<div><label class="block text-xs font-semibold text-gray-600 mb-1">Payment Status</label><select id="paymentStatus" required class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white"><option value="pending">Pending</option><option value="paid">Paid</option><option value="overdue">Overdue</option></select></div>
+<div class="flex items-end"><button type="submit" id="addClientBtn" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm transition"><span id="addClientBtnText">+ Add Client & Generate Key</span><div id="addClientSpinner" class="spinner hidden"></div></button></div>
+</form></div>
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"><div class="flex items-center justify-between px-5 py-4 border-b border-gray-200"><h2 class="text-base font-bold">Clients</h2><input id="searchInput" type="text" placeholder="Search clients..." class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 w-40 sm:w-56"></div>
+<div id="clientsLoading" class="p-8 flex justify-center"><div class="spinner"></div></div>
+<div id="clientsEmpty" class="hidden p-8 text-center text-sm text-gray-400">No clients yet. Add your first client above.</div>
+<div class="hidden md:block overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50 text-gray-500 text-xs uppercase"><tr><th class="text-left px-5 py-3">Client</th><th class="text-left px-5 py-3">Business Type</th><th class="text-left px-5 py-3">License Key</th><th class="text-left px-5 py-3">Payment</th><th class="text-left px-5 py-3">Created</th><th class="text-left px-5 py-3">Actions</th></tr></thead><tbody id="clientsTableBody" class="divide-y divide-gray-100"></tbody></table></div>
+<div id="clientsCardList" class="md:hidden divide-y divide-gray-100"></div>
+</div></main></div>
 <script>
-/* =====================================================================
-   FIREBASE CONFIG — REPLACE WITH YOUR OWN PROJECT CREDENTIALS
-   Get this from: Firebase Console → Project Settings → General → Your apps
-===================================================================== */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+apiKey: "AIzaSyAQLnbWAO-KQe3svvsLO45Pyts8opXAPPY",
+authDomain: "zeevix-35f2c.firebaseapp.com",
+projectId: "zeevix-35f2c",
+storageBucket: "zeevix-35f2c.firebasestorage.app",
+messagingSenderId: "700373919826",
+appId: "1:700373919826:web:e6ec7c78b9336f2bb4578b",
+measurementId: "G-9HH2PHZX95"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const clientsCollection = db.collection('clients');
-
-/* =====================================================================
-   ELEMENTS
-===================================================================== */
-const loginScreen = document.getElementById('loginScreen');
-const dashboardScreen = document.getElementById('dashboardScreen');
-const loginForm = document.getElementById('loginForm');
-const loginError = document.getElementById('loginError');
-const loginBtn = document.getElementById('loginBtn');
-const loginBtnText = document.getElementById('loginBtnText');
-const loginSpinner = document.getElementById('loginSpinner');
-const userEmailLabel = document.getElementById('userEmailLabel');
-const logoutBtn = document.getElementById('logoutBtn');
-
-const clientForm = document.getElementById('clientForm');
-const clientFormError = document.getElementById('clientFormError');
-const clientFormSuccess = document.getElementById('clientFormSuccess');
-const addClientBtn = document.getElementById('addClientBtn');
-const addClientBtnText = document.getElementById('addClientBtnText');
-const addClientSpinner = document.getElementById('addClientSpinner');
-
-const clientsLoading = document.getElementById('clientsLoading');
-const clientsEmpty = document.getElementById('clientsEmpty');
-const clientsTableBody = document.getElementById('clientsTableBody');
-const clientsCardList = document.getElementById('clientsCardList');
-const searchInput = document.getElementById('searchInput');
-
-let allClients = [];
-
-/* =====================================================================
-   AUTH
-===================================================================== */
-auth.onAuthStateChanged(user => {
-  if (user) {
-    loginScreen.classList.add('hidden');
-    dashboardScreen.classList.remove('hidden');
-    userEmailLabel.textContent = user.email;
-    loadClients();
-  } else {
-    dashboardScreen.classList.add('hidden');
-    loginScreen.classList.remove('hidden');
-  }
-});
-
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  loginError.classList.add('hidden');
-
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-
-  setLoading(loginBtn, loginBtnText, loginSpinner, true, 'Logging in...');
-
-  try {
-    await auth.signInWithEmailAndPassword(email, password);
-  } catch (err) {
-    loginError.textContent = friendlyAuthError(err);
-    loginError.classList.remove('hidden');
-  } finally {
-    setLoading(loginBtn, loginBtnText, loginSpinner, false, 'Login');
-  }
-});
-
-logoutBtn.addEventListener('click', () => auth.signOut());
-
-function friendlyAuthError(err) {
-  const map = {
-    'auth/invalid-email': 'Invalid email address.',
-    'auth/user-not-found': 'No account found with this email.',
-    'auth/wrong-password': 'Incorrect password.',
-    'auth/invalid-credential': 'Invalid email or password.',
-    'auth/too-many-requests': 'Too many attempts. Try again later.'
-  };
-  return map[err.code] || err.message || 'Login failed. Please try again.';
-}
-
-function setLoading(btn, textEl, spinnerEl, isLoading, text) {
-  btn.disabled = isLoading;
-  btn.classList.toggle('opacity-70', isLoading);
-  textEl.textContent = text;
-  spinnerEl.classList.toggle('hidden', !isLoading);
-}
-
-/* =====================================================================
-   LICENSE KEY GENERATION
-   Format: ZVX-XXXX-XXXX-XXXX
-===================================================================== */
-function generateLicenseKey() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
-  const segment = () =>
-    Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-  return `ZVX-${segment()}-${segment()}-${segment()}`;
-}
-
-/* =====================================================================
-   ADD CLIENT
-===================================================================== */
-clientForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  clientFormError.classList.add('hidden');
-  clientFormSuccess.classList.add('hidden');
-
-  const name = document.getElementById('clientName').value.trim();
-  const businessType = document.getElementById('businessType').value;
-  const paymentStatus = document.getElementById('paymentStatus').value;
-
-  if (!name || !businessType || !paymentStatus) {
-    clientFormError.textContent = 'Please fill all fields.';
-    clientFormError.classList.remove('hidden');
-    return;
-  }
-
-  setLoading(addClientBtn, addClientBtnText, addClientSpinner, true, 'Adding...');
-
-  const licenseKey = generateLicenseKey();
-
-  try {
-    await clientsCollection.add({
-      name,
-      businessType,
-      paymentStatus,
-      licenseKey,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    clientFormSuccess.textContent = `Client added! License key: ${licenseKey}`;
-    clientFormSuccess.classList.remove('hidden');
-    clientForm.reset();
-    setTimeout(() => clientFormSuccess.classList.add('hidden'), 5000);
-  } catch (err) {
-    clientFormError.textContent = err.message || 'Failed to add client.';
-    clientFormError.classList.remove('hidden');
-  } finally {
-    setLoading(addClientBtn, addClientBtnText, addClientSpinner, false, '+ Add Client & Generate Key');
-  }
-});
-
-/* =====================================================================
-   LOAD & RENDER CLIENTS (realtime)
-===================================================================== */
-function loadClients() {
-  clientsCollection.orderBy('createdAt', 'desc').onSnapshot(
-    (snapshot) => {
-      allClients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      clientsLoading.classList.add('hidden');
-      renderClients(allClients);
-      renderStats(allClients);
-    },
-    (err) => {
-      clientsLoading.classList.add('hidden');
-      clientsEmpty.textContent = 'Could not load clients: ' + err.message;
-      clientsEmpty.classList.remove('hidden');
-    }
-  );
-}
-
-function renderStats(clients) {
-  document.getElementById('statTotal').textContent = clients.length;
-  document.getElementById('statPaid').textContent = clients.filter(c => c.paymentStatus === 'paid').length;
-  document.getElementById('statPending').textContent = clients.filter(c => c.paymentStatus === 'pending').length;
-  document.getElementById('statOverdue').textContent = clients.filter(c => c.paymentStatus === 'overdue').length;
-}
-
-function statusBadge(status) {
-  const styles = {
-    paid: 'bg-green-100 text-green-700',
-    pending: 'bg-amber-100 text-amber-700',
-    overdue: 'bg-red-100 text-red-700'
-  };
-  const cls = styles[status] || 'bg-gray-100 text-gray-700';
-  return `<span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase ${cls}">${status}</span>`;
-}
-
-function formatDate(ts) {
-  if (!ts || !ts.toDate) return '—';
-  return ts.toDate().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
-function renderClients(clients) {
-  if (clients.length === 0) {
-    clientsEmpty.classList.remove('hidden');
-    clientsTableBody.innerHTML = '';
-    clientsCardList.innerHTML = '';
-    return;
-  }
-  clientsEmpty.classList.add('hidden');
-
-  // Desktop table rows
-  clientsTableBody.innerHTML = clients.map(c => `
-    <tr class="hover:bg-gray-50">
-      <td class="px-5 py-3 font-medium">${escapeHtml(c.name)}</td>
-      <td class="px-5 py-3 text-gray-600">${escapeHtml(c.businessType)}</td>
-      <td class="px-5 py-3 font-mono text-xs text-indigo-600">${c.licenseKey}</td>
-      <td class="px-5 py-3">
-        <select data-id="${c.id}" class="statusSelect text-xs border border-gray-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <option value="pending" ${c.paymentStatus === 'pending' ? 'selected' : ''}>Pending</option>
-          <option value="paid" ${c.paymentStatus === 'paid' ? 'selected' : ''}>Paid</option>
-          <option value="overdue" ${c.paymentStatus === 'overdue' ? 'selected' : ''}>Overdue</option>
-        </select>
-      </td>
-      <td class="px-5 py-3 text-gray-500 text-xs">${formatDate(c.createdAt)}</td>
-      <td class="px-5 py-3">
-        <button data-id="${c.id}" class="deleteBtn text-xs font-semibold text-red-600 hover:text-red-700">Delete</button>
-      </td>
-    </tr>
-  `).join('');
-
-  // Mobile cards
-  clientsCardList.innerHTML = clients.map(c => `
-    <div class="p-4 space-y-2">
-      <div class="flex items-center justify-between">
-        <p class="font-semibold text-sm">${escapeHtml(c.name)}</p>
-        ${statusBadge(c.paymentStatus)}
-      </div>
-      <p class="text-xs text-gray-500">${escapeHtml(c.businessType)}</p>
-      <p class="text-xs font-mono text-indigo-600">${c.licenseKey}</p>
-      <div class="flex items-center justify-between pt-1">
-        <select data-id="${c.id}" class="statusSelect text-xs border border-gray-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <option value="pending" ${c.paymentStatus === 'pending' ? 'selected' : ''}>Pending</option>
-          <option value="paid" ${c.paymentStatus === 'paid' ? 'selected' : ''}>Paid</option>
-          <option value="overdue" ${c.paymentStatus === 'overdue' ? 'selected' : ''}>Overdue</option>
-        </select>
-        <button data-id="${c.id}" class="deleteBtn text-xs font-semibold text-red-600 hover:text-red-700">Delete</button>
-      </div>
-      <p class="text-[11px] text-gray-400">${formatDate(c.createdAt)}</p>
-    </div>
-  `).join('');
-
-  // Bind status change
-  document.querySelectorAll('.statusSelect').forEach(select => {
-    select.addEventListener('change', async (e) => {
-      const id = e.target.dataset.id;
-      try {
-        await clientsCollection.doc(id).update({ paymentStatus: e.target.value });
-      } catch (err) {
-        alert('Failed to update status: ' + err.message);
-      }
-    });
-  });
-
-  // Bind delete
-  document.querySelectorAll('.deleteBtn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = e.target.dataset.id;
-      if (confirm('Delete this client permanently?')) {
-        try {
-          await clientsCollection.doc(id).delete();
-        } catch (err) {
-          alert('Failed to delete: ' + err.message);
-        }
-      }
-    });
-  });
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str ?? '';
-  return div.innerHTML;
-}
-
-/* =====================================================================
-   SEARCH
-===================================================================== */
-searchInput.addEventListener('input', (e) => {
-  const q = e.target.value.trim().toLowerCase();
-  const filtered = allClients.filter(c =>
-    c.name.toLowerCase().includes(q) ||
-    c.businessType.toLowerCase().includes(q) ||
-    c.licenseKey.toLowerCase().includes(q)
-  );
-  renderClients(filtered);
-});
+const loginScreen=document.getElementById('loginScreen'),dashboardScreen=document.getElementById('dashboardScreen'),loginForm=document.getElementById('loginForm'),loginError=document.getElementById('loginError'),loginBtn=document.getElementById('loginBtn'),loginBtnText=document.getElementById('loginBtnText'),loginSpinner=document.getElementById('loginSpinner'),userEmailLabel=document.getElementById('userEmailLabel'),logoutBtn=document.getElementById('logoutBtn');
+const clientForm=document.getElementById('clientForm'),clientFormError=document.getElementById('clientFormError'),clientFormSuccess=document.getElementById('clientFormSuccess'),addClientBtn=document.getElementById('addClientBtn'),addClientBtnText=document.getElementById('addClientBtnText'),addClientSpinner=document.getElementById('addClientSpinner');
+const clientsLoading=document.getElementById('clientsLoading'),clientsEmpty=document.getElementById('clientsEmpty'),clientsTableBody=document.getElementById('clientsTableBody'),clientsCardList=document.getElementById('clientsCardList'),searchInput=document.getElementById('searchInput');
+let allClients=[];
+auth.onAuthStateChanged(user=>{if(user){loginScreen.classList.add('hidden');dashboardScreen.classList.remove('hidden');userEmailLabel.textContent=user.email;loadClients();}else{dashboardScreen.classList.add('hidden');loginScreen.classList.remove('hidden');}});
+loginForm.addEventListener('submit',async e=>{e.preventDefault();loginError.classList.add('hidden');const email=document.getElementById('loginEmail').value.trim(),password=document.getElementById('loginPassword').value;setLoading(loginBtn,loginBtnText,loginSpinner,true,'Logging in...');try{await auth.signInWithEmailAndPassword(email,password);}catch(err){loginError.textContent=err.message;loginError.classList.remove('hidden');}finally{setLoading(loginBtn,loginBtnText,loginSpinner,false,'Login');}});
+logoutBtn.addEventListener('click',()=>auth.signOut());
+function setLoading(btn,textEl,spinnerEl,isLoading,text){btn.disabled=isLoading;btn.classList.toggle('opacity-70',isLoading);textEl.textContent=text;spinnerEl.classList.toggle('hidden',!isLoading);}
+function generateLicenseKey(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const seg=()=>Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');return `ZVX-${seg()}-${seg()}-${seg()}`;}
+clientForm.addEventListener('submit',async e=>{e.preventDefault();clientFormError.classList.add('hidden');clientFormSuccess.classList.add('hidden');const name=document.getElementById('clientName').value.trim(),businessType=document.getElementById('businessType').value,paymentStatus=document.getElementById('paymentStatus').value;if(!name||!businessType){clientFormError.textContent='Please fill all fields.';clientFormError.classList.remove('hidden');return;}setLoading(addClientBtn,addClientBtnText,addClientSpinner,true,'Adding...');const licenseKey=generateLicenseKey();try{await clientsCollection.add({name,businessType,paymentStatus,licenseKey,createdAt:firebase.firestore.FieldValue.serverTimestamp()});clientFormSuccess.textContent=`Client added! License key: ${licenseKey}`;clientFormSuccess.classList.remove('hidden');clientForm.reset();setTimeout(()=>clientFormSuccess.classList.add('hidden'),5000);}catch(err){clientFormError.textContent=err.message;clientFormError.classList.remove('hidden');}finally{setLoading(addClientBtn,addClientBtnText,addClientSpinner,false,'+ Add Client & Generate Key');}});
+function loadClients(){clientsCollection.orderBy('createdAt','desc').onSnapshot(snap=>{allClients=snap.docs.map(d=>({id:d.id,...d.data()}));clientsLoading.classList.add('hidden');renderClients(allClients);renderStats(allClients);},err=>{clientsLoading.classList.add('hidden');clientsEmpty.textContent='Could not load: '+err.message;clientsEmpty.classList.remove('hidden');});}
+function renderStats(c){document.getElementById('statTotal').textContent=c.length;document.getElementById('statPaid').textContent=c.filter(x=>x.paymentStatus==='paid').length;document.getElementById('statPending').textContent=c.filter(x=>x.paymentStatus==='pending').length;document.getElementById('statOverdue').textContent=c.filter(x=>x.paymentStatus==='overdue').length;}
+function formatDate(ts){if(!ts||!ts.toDate)return '—';return ts.toDate().toLocaleDateString();}
+function escapeHtml(s){const d=document.createElement('div');d.textContent=s??'';return d.innerHTML;}
+function renderClients(clients){if(!clients.length){clientsEmpty.classList.remove('hidden');clientsTableBody.innerHTML='';clientsCardList.innerHTML='';return;}clientsEmpty.classList.add('hidden');clientsTableBody.innerHTML=clients.map(c=>`<tr class="hover:bg-gray-50"><td class="px-5 py-3 font-medium">${escapeHtml(c.name)}</td><td class="px-5 py-3 text-gray-600">${escapeHtml(c.businessType)}</td><td class="px-5 py-3 font-mono text-xs text-indigo-600">${c.licenseKey}</td><td class="px-5 py-3"><select data-id="${c.id}" class="statusSelect text-xs border rounded-md px-2 py-1"><option value="pending" ${c.paymentStatus==='pending'?'selected':''}>Pending</option><option value="paid" ${c.paymentStatus==='paid'?'selected':''}>Paid</option><option value="overdue" ${c.paymentStatus==='overdue'?'selected':''}>Overdue</option></select></td><td class="px-5 py-3 text-xs">${formatDate(c.createdAt)}</td><td class="px-5 py-3"><button data-id="${c.id}" class="deleteBtn text-xs font-semibold text-red-600">Delete</button></td></tr>`).join('');clientsCardList.innerHTML=clients.map(c=>`<div class="p-4"><p class="font-semibold text-sm">${escapeHtml(c.name)}</p><p class="text-xs text-gray-500">${escapeHtml(c.businessType)}</p><p class="text-xs font-mono text-indigo-600">${c.licenseKey}</p><div class="flex justify-between mt-2"><select data-id="${c.id}" class="statusSelect text-xs border rounded-md px-2 py-1"><option value="pending" ${c.paymentStatus==='pending'?'selected':''}>Pending</option><option value="paid" ${c.paymentStatus==='paid'?'selected':''}>Paid</option><option value="overdue" ${c.paymentStatus==='overdue'?'selected':''}>Overdue</option></select><button data-id="${c.id}" class="deleteBtn text-xs font-semibold text-red-600">Delete</button></div></div>`).join('');document.querySelectorAll('.statusSelect').forEach(s=>s.addEventListener('change',async e=>{try{await clientsCollection.doc(e.target.dataset.id).update({paymentStatus:e.target.value});}catch(err){alert(err.message);}}));document.querySelectorAll('.deleteBtn').forEach(b=>b.addEventListener('click',async e=>{if(confirm('Delete?')){try{await clientsCollection.doc(e.target.dataset.id).delete();}catch(err){alert(err.message);}}}));}
+searchInput.addEventListener('input',e=>{const q=e.target.value.toLowerCase();renderClients(allClients.filter(c=>c.name.toLowerCase().includes(q)||c.businessType.toLowerCase().includes(q)));});
 </script>
 </body>
 </html>
