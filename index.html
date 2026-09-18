@@ -3,81 +3,113 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZEEVIX Admin</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<title>ZEVIX — Business OS</title>
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
-[v-cloak]{display:none}
-.spinner{border:3px solid #e5e7eb;border-top:3px solid #4f46e5;border-radius:50%;width:20px;height:20px;animation:spin.8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+*{box-sizing:border-box}
+:root{--bg:#f5f7fa;--panel:#fff;--text:#111827;--muted:#6b7280;--line:#e5e7eb;--dark:#111827;--accent:#e11d48;--accent2:#be123c;--soft:#fff1f2}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{min-height:100vh;display:flex}
+.side{width:250px;background:#101318;color:#fff;position:fixed;inset:0 auto 0 0;display:flex;flex-direction:column;padding:20px 14px;z-index:30}
+.brand{display:flex;align-items:center;gap:11px;padding:3px 9px 22px;border-bottom:1px solid #272b32}
+.mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#ef4444,#9f1239);display:grid;place-items:center;font-weight:900;font-size:21px}
+.brand b{display:block;font-size:16px;letter-spacing:.08em}.brand span{display:block;color:#9ca3af;font-size:11px;margin-top:1px}
+.close{display:none;margin-left:auto;background:none;border:0;color:#9ca3af}
+.workspace{padding:20px 10px 13px}.workspace span{display:block;color:#717784;font-size:10px;font-weight:800;letter-spacing:.12em}.workspace strong{display:block;font-size:13px;margin-top:6px}
+nav{display:flex;flex-direction:column;gap:4px}.nav{border:0;background:transparent;color:#aeb4bf;display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;text-align:left;width:100%;font-size:13px}.nav:hover{background:#1b1f26;color:#fff}.nav.active{background:#252a32;color:#fff;box-shadow:inset 3px 0 0 #ef4444}
+.sideBottom{margin-top:auto}.secure{display:flex;align-items:center;gap:9px;color:#737b88;font-size:11px;padding:12px}.secure svg{color:#34d399}
+main{margin-left:250px;width:calc(100% - 250px);min-width:0}
+header{height:82px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 34px}
+.crumb{font-size:11px;color:#9ca3af;margin-bottom:3px}h1{font-size:22px;margin:0;letter-spacing:-.03em}.avatar{width:37px;height:37px;border-radius:50%;background:#fce7f3;color:#be123c;display:grid;place-items:center;font-weight:800;font-size:12px}
+.hamb{display:none;border:0;background:none}.content{padding:30px 34px 50px;max-width:1500px;margin:auto}
+.hero{background:#111827;color:#fff;border-radius:18px;padding:32px 34px;min-height:235px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative}
+.hero>div:first-child{max-width:670px;position:relative;z-index:2}.eyebrow{font-size:10px;font-weight:850;letter-spacing:.13em;color:#f43f5e;margin:0 0 9px}.hero h2{font-size:38px;line-height:1.04;letter-spacing:-.045em;margin:0 0 12px}.hero p:not(.eyebrow){color:#c7cbd3;max-width:590px;font-size:14px;line-height:1.6;margin:0 0 20px}
+.heroShape{width:270px;height:190px;border-radius:50%;background:radial-gradient(circle at 45% 40%,#ef4444,transparent 52%),radial-gradient(circle,#3f0b1b,#111827 68%);display:grid;place-items:center;transform:rotate(-10deg);margin-right:30px}.heroShape>div{transform:rotate(10deg);text-align:center}.heroShape span{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.12em;padding:5px 8px;border-radius:20px;background:#16a34a;color:#fff}.heroShape b{display:block;font-size:31px;margin:7px 0 0}.heroShape small{color:#cbd5e1;font-size:10px}
+.primary{border:0;background:var(--accent);color:#fff;border-radius:9px;padding:10px 14px;font-weight:750;font-size:12px;display:inline-flex;align-items:center;gap:7px;box-shadow:0 5px 15px #e11d4826}.primary:hover{background:var(--accent2)}.full{width:100%;justify-content:center;margin-top:7px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:18px 0}.stat,.panel,.projectCard,.empty{background:var(--panel);border:1px solid var(--line);border-radius:14px}.stat{padding:17px}.statTop{display:flex;justify-content:space-between;color:#6b7280;font-size:11px;font-weight:650}.statTop svg{color:#9ca3af}.stat strong{display:block;font-size:27px;margin:13px 0 4px;letter-spacing:-.04em}.stat small{font-size:10px;color:#9ca3af}
+.grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.panel{padding:21px}.panelHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}.panelHead h3{margin:0;font-size:15px}.panelHead p{margin:4px 0 0;font-size:11px;color:#9ca3af}.ghost{border:0;background:none;color:#6b7280;font-size:11px;display:flex;align-items:center;gap:5px}.row{display:flex;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #f0f1f3}.projectIcon,.cardIcon{width:40px;height:40px;border-radius:10px;background:#f3f4f6;display:grid;place-items:center;font-weight:850;font-size:11px;color:#374151}.grow{flex:1;min-width:0}.grow b{display:block;font-size:12px}.grow span{display:block;color:#9ca3af;font-size:10px;margin-top:3px}.pill{font-size:9px;background:#f3f4f6;color:#6b7280;border-radius:20px;padding:5px 8px}.pill.live{background:#dcfce7;color:#15803d}.health{display:flex;flex-direction:column;gap:10px}.health>div{display:flex;gap:10px;align-items:center;padding:12px;border:1px solid #f0f1f3;border-radius:10px}.health svg{width:19px;color:#22c55e}.health>div:last-child svg{color:#f59e0b}.health b{display:block;font-size:11px}.health small{display:block;color:#9ca3af;font-size:9px;margin-top:3px}
+.pageIntro{display:flex;justify-content:space-between;align-items:end;margin-bottom:20px}.pageIntro h2{font-size:28px;margin:0 0 5px;letter-spacing:-.04em}.pageIntro>div>p:last-child{font-size:12px;color:#9ca3af;margin:0}.projectGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}.projectCard{padding:20px;min-height:245px;display:flex;flex-direction:column}.projectCard .tiny{font-size:9px;color:#9ca3af;margin-top:17px;text-transform:uppercase;letter-spacing:.1em;font-weight:800}.projectCard h3{font-size:17px;margin:5px 0}.projectCard>p{font-size:11px;line-height:1.55;color:#6b7280;margin:0}.cardMeta{display:flex;gap:10px;margin-top:auto;padding:14px 0;border-top:1px solid #f0f1f3;margin-bottom:10px}.cardMeta span{font-size:10px;color:#6b7280}.cardAction{border:0;background:#f8fafc;border-radius:8px;padding:9px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px}.empty{padding:70px 30px;text-align:center;max-width:650px;margin:45px auto}.emptyIcon{width:55px;height:55px;margin:0 auto 17px;border-radius:15px;background:#fff1f2;color:#e11d48;display:grid;place-items:center}.empty h2{margin:0 0 9px;font-size:26px}.empty>p:last-child{color:#8b93a0;font-size:12px;line-height:1.7}
+.overlay{display:none}.modalWrap{position:fixed;inset:0;background:#0008;display:grid;place-items:center;z-index:100;padding:20px}.modal{width:min(480px,100%);background:#fff;border-radius:17px;padding:28px;position:relative;box-shadow:0 25px 80px #0003}.modal h2{font-size:24px;letter-spacing:-.04em;margin:0 0 20px}.modalX{position:absolute;right:16px;top:16px;border:0;background:#f3f4f6;width:32px;height:32px;border-radius:50%;display:grid;place-items:center}.modal label{display:block;font-size:11px;font-weight:750;margin:12px 0}.modal input,.modal select,.modal textarea{display:block;width:100%;margin-top:6px;border:1px solid #dfe3e8;border-radius:8px;padding:10px 11px;outline:none;font-size:12px}.modal textarea{height:90px;resize:vertical}.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:#f43f5e;box-shadow:0 0 0 3px #f43f5e18}
+
+@media(max-width:900px){.side{transform:translateX(-100%);transition:.25s}.side.open{transform:translateX(0)}.close{display:block}.overlay{display:block;position:fixed;inset:0;background:#0008;z-index:20}main{margin-left:0;width:100%}.hamb{display:grid;place-items:center;margin-right:13px}header{padding:0 18px}.content{padding:22px 18px}.hero{padding:27px;min-height:220px}.heroShape{width:190px;height:150px;margin-right:0}.hero h2{font-size:31px}.stats{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.projectGrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){header{height:70px}.content{padding:17px 13px}.hero{padding:23px;min-height:300px;align-items:flex-start}.hero h2{font-size:28px}.heroShape{position:absolute;right:-40px;bottom:-38px;width:190px;height:150px;opacity:.8}.stats{gap:9px}.stat{padding:13px}.stat strong{font-size:23px}.grid2{gap:12px}.panel{padding:16px}.projectGrid{grid-template-columns:1fr}.pageIntro{align-items:flex-start;gap:15px;flex-direction:column}.pageIntro .primary{align-self:stretch;justify-content:center}}
 </style>
 </head>
-<body class="bg-gray-50 text-gray-800 min-h-screen">
-<div id="loginScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-600 to-purple-700">
-<div class="w-full max-w-sm bg-white rounded-2xl shadow-xl p-8">
-<div class="text-center mb-8"><h1 class="text-3xl font-extrabold text-indigo-600">ZEEVIX</h1><p class="text-sm text-gray-500 mt-1">Master Admin Panel</p></div>
-<div id="loginError" class="hidden mb-4 text-sm bg-red-50 text-red-700 border border-red-200 rounded-lg px-3 py-2"></div>
-<form id="loginForm" class="space-y-4">
-<div><label class="block text-xs font-semibold text-gray-600 mb-1">Email</label><input id="loginEmail" type="email" required placeholder="admin@zeevix.com" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
-<div><label class="block text-xs font-semibold text-gray-600 mb-1">Password</label><input id="loginPassword" type="password" required placeholder="••••••••" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
-<button type="submit" id="loginBtn" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm transition"><span id="loginBtnText">Login</span><div id="loginSpinner" class="spinner hidden"></div></button>
-</form>
-</div>
-</div>
-<div id="dashboardScreen" class="hidden min-h-screen">
-<header class="bg-white border-b border-gray-200 sticky top-0 z-20"><div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between"><div class="flex items-center gap-2"><h1 class="text-xl font-extrabold text-indigo-600">ZEEVIX</h1><span class="hidden sm:inline text-xs text-gray-400 border-l border-gray-200 pl-2">Admin Panel</span></div><div class="flex items-center gap-3"><span id="userEmailLabel" class="hidden sm:block text-xs text-gray-500"></span><button id="logoutBtn" class="text-xs font-semibold text-red-600 hover:text-red-700 border border-red-200 hover:bg-red-50 rounded-lg px-3 py-1.5 transition">Logout</button></div></div></header>
-<main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
-<div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"><p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Total Clients</p><p id="statTotal" class="text-2xl font-bold mt-1">0</p></div>
-<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"><p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Paid</p><p id="statPaid" class="text-2xl font-bold mt-1 text-green-600">0</p></div>
-<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"><p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Pending</p><p id="statPending" class="text-2xl font-bold mt-1 text-amber-600">0</p></div>
-<div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm"><p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Overdue</p><p id="statOverdue" class="text-2xl font-bold mt-1 text-red-600">0</p></div>
-</div>
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5"><h2 class="text-base font-bold mb-4">Add New Client</h2><div id="clientFormError" class="hidden mb-4 text-sm bg-red-50 text-red-700 border border-red-200 rounded-lg px-3 py-2"></div><div id="clientFormSuccess" class="hidden mb-4 text-sm bg-green-50 text-green-700 border border-green-200 rounded-lg px-3 py-2"></div>
-<form id="clientForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-<div><label class="block text-xs font-semibold text-gray-600 mb-1">Client / Business Name</label><input id="clientName" type="text" required placeholder="e.g., Ahmed Academy" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></div>
-<div><label class="block text-xs font-semibold text-gray-600 mb-1">Business Type</label><select id="businessType" required class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white"><option value="">Select type</option><option>School Management</option><option>Gym Management</option><option>POS System</option><option>Pharmacy Management</option><option>Other</option></select></div>
-<div><label class="block text-xs font-semibold text-gray-600 mb-1">Payment Status</label><select id="paymentStatus" required class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm bg-white"><option value="pending">Pending</option><option value="paid">Paid</option><option value="overdue">Overdue</option></select></div>
-<div class="flex items-end"><button type="submit" id="addClientBtn" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm transition"><span id="addClientBtnText">+ Add Client & Generate Key</span><div id="addClientSpinner" class="spinner hidden"></div></button></div>
-</form></div>
-<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"><div class="flex items-center justify-between px-5 py-4 border-b border-gray-200"><h2 class="text-base font-bold">Clients</h2><input id="searchInput" type="text" placeholder="Search clients..." class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 w-40 sm:w-56"></div>
-<div id="clientsLoading" class="p-8 flex justify-center"><div class="spinner"></div></div>
-<div id="clientsEmpty" class="hidden p-8 text-center text-sm text-gray-400">No clients yet. Add your first client above.</div>
-<div class="hidden md:block overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-50 text-gray-500 text-xs uppercase"><tr><th class="text-left px-5 py-3">Client</th><th class="text-left px-5 py-3">Business Type</th><th class="text-left px-5 py-3">License Key</th><th class="text-left px-5 py-3">Payment</th><th class="text-left px-5 py-3">Created</th><th class="text-left px-5 py-3">Actions</th></tr></thead><tbody id="clientsTableBody" class="divide-y divide-gray-100"></tbody></table></div>
-<div id="clientsCardList" class="md:hidden divide-y divide-gray-100"></div>
-</div></main></div>
+<body>
+<div id="root"></div>
 <script>
-const firebaseConfig = {
-apiKey: "AIzaSyAQLnbWAO-KQe3avvsLO45Pyts0opXAPPY",
-authDomain: "zeevix-35f2c.firebaseapp.com",
-projectId: "zeevix-35f2c",
-storageBucket: "zeevix-35f2c.firebasestorage.app",
-messagingSenderId: "700373919826",
-appId: "1:700373919826:web:e6ec7c78b9336f2bb4578b",
-measurementId: "G-9HH2PHZX95"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const clientsCollection = db.collection('clients');
-const loginScreen=document.getElementById('loginScreen'),dashboardScreen=document.getElementById('dashboardScreen'),loginForm=document.getElementById('loginForm'),loginError=document.getElementById('loginError'),loginBtn=document.getElementById('loginBtn'),loginBtnText=document.getElementById('loginBtnText'),loginSpinner=document.getElementById('loginSpinner'),userEmailLabel=document.getElementById('userEmailLabel'),logoutBtn=document.getElementById('logoutBtn');
-const clientForm=document.getElementById('clientForm'),clientFormError=document.getElementById('clientFormError'),clientFormSuccess=document.getElementById('clientFormSuccess'),addClientBtn=document.getElementById('addClientBtn'),addClientBtnText=document.getElementById('addClientBtnText'),addClientSpinner=document.getElementById('addClientSpinner');
-const clientsLoading=document.getElementById('clientsLoading'),clientsEmpty=document.getElementById('clientsEmpty'),clientsTableBody=document.getElementById('clientsTableBody'),clientsCardList=document.getElementById('clientsCardList'),searchInput=document.getElementById('searchInput');
-let allClients=[];
-auth.onAuthStateChanged(user=>{if(user){loginScreen.classList.add('hidden');dashboardScreen.classList.remove('hidden');userEmailLabel.textContent=user.email;loadClients();}else{dashboardScreen.classList.add('hidden');loginScreen.classList.remove('hidden');}});
-loginForm.addEventListener('submit',async e=>{e.preventDefault();loginError.classList.add('hidden');const email=document.getElementById('loginEmail').value.trim(),password=document.getElementById('loginPassword').value;setLoading(loginBtn,loginBtnText,loginSpinner,true,'Logging in...');try{await auth.signInWithEmailAndPassword(email,password);}catch(err){loginError.textContent=err.message;loginError.classList.remove('hidden');}finally{setLoading(loginBtn,loginBtnText,loginSpinner,false,'Login');}});
-logoutBtn.addEventListener('click',()=>auth.signOut());
-function setLoading(btn,textEl,spinnerEl,isLoading,text){btn.disabled=isLoading;btn.classList.toggle('opacity-70',isLoading);textEl.textContent=text;spinnerEl.classList.toggle('hidden',!isLoading);}
-function generateLicenseKey(){const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const seg=()=>Array.from({length:4},()=>chars[Math.floor(Math.random()*chars.length)]).join('');return `ZVX-${seg()}-${seg()}-${seg()}`;}
-clientForm.addEventListener('submit',async e=>{e.preventDefault();clientFormError.classList.add('hidden');clientFormSuccess.classList.add('hidden');const name=document.getElementById('clientName').value.trim(),businessType=document.getElementById('businessType').value,paymentStatus=document.getElementById('paymentStatus').value;if(!name||!businessType){clientFormError.textContent='Please fill all fields.';clientFormError.classList.remove('hidden');return;}setLoading(addClientBtn,addClientBtnText,addClientSpinner,true,'Adding...');const licenseKey=generateLicenseKey();try{await clientsCollection.add({name,businessType,paymentStatus,licenseKey,createdAt:firebase.firestore.FieldValue.serverTimestamp()});clientFormSuccess.textContent=`Client added! License key: ${licenseKey}`;clientFormSuccess.classList.remove('hidden');clientForm.reset();setTimeout(()=>clientFormSuccess.classList.add('hidden'),5000);}catch(err){clientFormError.textContent=err.message;clientFormError.classList.remove('hidden');}finally{setLoading(addClientBtn,addClientBtnText,addClientSpinner,false,'+ Add Client & Generate Key');}});
-function loadClients(){clientsCollection.orderBy('createdAt','desc').onSnapshot(snap=>{allClients=snap.docs.map(d=>({id:d.id,...d.data()}));clientsLoading.classList.add('hidden');renderClients(allClients);renderStats(allClients);},err=>{clientsLoading.classList.add('hidden');clientsEmpty.textContent='Could not load: '+err.message;clientsEmpty.classList.remove('hidden');});}
-function renderStats(c){document.getElementById('statTotal').textContent=c.length;document.getElementById('statPaid').textContent=c.filter(x=>x.paymentStatus==='paid').length;document.getElementById('statPending').textContent=c.filter(x=>x.paymentStatus==='pending').length;document.getElementById('statOverdue').textContent=c.filter(x=>x.paymentStatus==='overdue').length;}
-function formatDate(ts){if(!ts||!ts.toDate)return '—';return ts.toDate().toLocaleDateString();}
-function escapeHtml(s){const d=document.createElement('div');d.textContent=s??'';return d.innerHTML;}
-function renderClients(clients){if(!clients.length){clientsEmpty.classList.remove('hidden');clientsTableBody.innerHTML='';clientsCardList.innerHTML='';return;}clientsEmpty.classList.add('hidden');clientsTableBody.innerHTML=clients.map(c=>`<tr class="hover:bg-gray-50"><td class="px-5 py-3 font-medium">${escapeHtml(c.name)}</td><td class="px-5 py-3 text-gray-600">${escapeHtml(c.businessType)}</td><td class="px-5 py-3 font-mono text-xs text-indigo-600">${c.licenseKey}</td><td class="px-5 py-3"><select data-id="${c.id}" class="statusSelect text-xs border rounded-md px-2 py-1"><option value="pending" ${c.paymentStatus==='pending'?'selected':''}>Pending</option><option value="paid" ${c.paymentStatus==='paid'?'selected':''}>Paid</option><option value="overdue" ${c.paymentStatus==='overdue'?'selected':''}>Overdue</option></select></td><td class="px-5 py-3 text-xs">${formatDate(c.createdAt)}</td><td class="px-5 py-3"><button data-id="${c.id}" class="deleteBtn text-xs font-semibold text-red-600">Delete</button></td></tr>`).join('');clientsCardList.innerHTML=clients.map(c=>`<div class="p-4"><p class="font-semibold text-sm">${escapeHtml(c.name)}</p><p class="text-xs text-gray-500">${escapeHtml(c.businessType)}</p><p class="text-xs font-mono text-indigo-600">${c.licenseKey}</p><div class="flex justify-between mt-2"><select data-id="${c.id}" class="statusSelect text-xs border rounded-md px-2 py-1"><option value="pending" ${c.paymentStatus==='pending'?'selected':''}>Pending</option><option value="paid" ${c.paymentStatus==='paid'?'selected':''}>Paid</option><option value="overdue" ${c.paymentStatus==='overdue'?'selected':''}>Overdue</option></select><button data-id="${c.id}" class="deleteBtn text-xs font-semibold text-red-600">Delete</button></div></div>`).join('');document.querySelectorAll('.statusSelect').forEach(s=>s.addEventListener('change',async e=>{try{await clientsCollection.doc(e.target.dataset.id).update({paymentStatus:e.target.value});}catch(err){alert(err.message);}}));document.querySelectorAll('.deleteBtn').forEach(b=>b.addEventListener('click',async e=>{if(confirm('Delete?')){try{await clientsCollection.doc(e.target.dataset.id).delete();}catch(err){alert(err.message);}}}));}
-searchInput.addEventListener('input',e=>{const q=e.target.value.toLowerCase();renderClients(allClients.filter(c=>c.name.toLowerCase().includes(q)||c.businessType.toLowerCase().includes(q)));});
+const projects=[
+ {name:'Gym Manager',type:'Gym',clients:0,modules:15,status:'Active',desc:'Members, memberships, payments, attendance and more.'},
+ {name:'Real Estate Manager',type:'Real Estate',clients:0,modules:0,status:'Ready',desc:'Reusable project ready for its own modules and clients.'},
+ {name:'Hospital Manager',type:'Hospital',clients:0,modules:0,status:'Ready',desc:'Reusable project ready for its own modules and clients.'}
+];
+const nav=[
+ ['Dashboard','layout-dashboard'],['Projects','boxes'],['Clients','users'],['Subscriptions','credit-card'],
+ ['Payments','credit-card'],['Modules','boxes'],['Reports','bar-chart-3'],['Settings','settings']
+];
+let page='Dashboard', mobile=false, show=false;
+
+function icon(name,size=18){return `<i data-lucide="${name}" width="${size}" height="${size}"></i>`}
+function render(){
+ document.getElementById('root').innerHTML=`
+ <div class="app">
+  <aside class="side ${mobile?'open':''}">
+   <div class="brand"><div class="mark">Z</div><div><b>ZEVIX</b><span>Business OS</span></div><button class="close" onclick="setMobile(false)">${icon('x')}</button></div>
+   <div class="workspace"><span>MASTER CONTROL</span><strong>ZEVIX Admin</strong></div>
+   <nav>${nav.map(([n,i])=>`<button class="nav ${page===n?'active':''}" onclick="setPage('${n}')">${icon(i)}<span>${n}</span></button>`).join('')}</nav>
+   <div class="sideBottom"><div class="secure">${icon('shield-check',17)}<span>Secure workspace</span></div><button class="nav" onclick="alert('Logout is ready for Supabase Auth integration.')">${icon('log-out')}<span>Logout</span></button></div>
+  </aside>
+  ${mobile?'<div class="overlay" onclick="setMobile(false)"></div>':''}
+  <main>
+   <header><button class="hamb" onclick="setMobile(true)">${icon('menu')}</button><div><div class="crumb">ZEVIX / Master Admin</div><h1>${page}</h1></div><div class="headerRight"><div class="avatar">ZA</div></div></header>
+   <div class="content">${page==='Dashboard'?dashboard():page==='Projects'?projectsPage():placeholder(page)}</div>
+  </main>
+  ${show?modal():''}
+ </div>`;
+ lucide.createIcons();
+}
+function dashboard(){
+ const stats=[['Total Projects','3','+1 this month','boxes'],['Total Clients','0','Ready for onboarding','users'],['Active Clients','0','All systems ready','activity'],['Monthly Revenue','Rs 0','No payments yet','credit-card']];
+ return `
+ <section class="hero"><div><p class="eyebrow">ZEVIX CONTROL CENTER</p><h2>One OS. Every business.</h2><p>Manage projects, clients, modules, subscriptions and operations from one reusable SaaS platform.</p><button class="primary" onclick="setPage('Projects')">${icon('plus',17)} Create project</button></div><div class="heroShape"><div><span>LIVE</span><b>Core</b><small>Multi-tenant platform</small></div></div></section>
+ <div class="stats">${stats.map(s=>`<div class="stat"><div class="statTop"><span>${s[0]}</span>${icon(s[3],18)}</div><strong>${s[1]}</strong><small>${s[2]}</small></div>`).join('')}</div>
+ <div class="grid2">
+  <section class="panel"><div class="panelHead"><div><h3>Projects</h3><p>Your software products</p></div><button class="ghost" onclick="setPage('Projects')">View all ${icon('arrow-up-right',15)}</button></div>
+  ${projects.map((p,i)=>`<div class="row"><div class="projectIcon">${i===0?'GY':i===1?'RE':'HO'}</div><div class="grow"><b>${p.name}</b><span>${p.type} · ${p.clients} clients</span></div><span class="pill ${i===0?'live':''}">${p.status}</span>${icon('chevron-right',17)}</div>`).join('')}</section>
+  <section class="panel"><div class="panelHead"><div><h3>System overview</h3><p>Platform readiness</p></div></div><div class="health">
+   <div>${icon('check-circle-2')}<span><b>Core ready</b><small>Multi-tenant foundation</small></span></div>
+   <div>${icon('check-circle-2')}<span><b>Module engine ready</b><small>Per-client feature flags</small></span></div>
+   <div>${icon('alert-circle')}<span><b>0 subscriptions</b><small>Add your first client</small></span></div>
+  </div></section>
+ </div>`;
+}
+function projectsPage(){
+ return `<div class="pageIntro"><div><p class="eyebrow">SOFTWARE PRODUCTS</p><h2>Projects</h2><p>Build reusable business software under ZEVIX.</p></div><button class="primary" onclick="showModal()">${icon('plus',17)} Create project</button></div>
+ <div class="projectGrid">${projects.map((p,i)=>`<div class="projectCard"><div class="cardIcon">${i===0?'GY':i===1?'RE':'HO'}</div><span class="tiny">${p.type}</span><h3>${p.name}</h3><p>${p.desc}</p><div class="cardMeta"><span>${p.modules} modules</span><span>${p.clients} clients</span></div><button class="cardAction" onclick="alert('${p.name} is ready for its module workspace.')">Open project ${icon('arrow-up-right',15)}</button></div>`).join('')}</div>`;
+}
+function placeholder(title){
+ return `<section class="empty"><div class="emptyIcon">${icon('boxes')}</div><p class="eyebrow">ZEVIX CORE</p><h2>${title}</h2><p>This workspace is reserved for the ZEVIX platform module. The UI shell is ready for its live Supabase data and permissions.</p></section>`;
+}
+function modal(){
+ return `<div class="modalWrap" onclick="if(event.target===this)closeModal()"><div class="modal"><button class="modalX" onclick="closeModal()">${icon('x')}</button><p class="eyebrow">NEW PROJECT</p><h2>Create a ZEVIX project</h2>
+ <label>Project name<input id="projectName" placeholder="e.g. Gym Manager"></label>
+ <label>Project type<select><option>Gym</option><option>Real Estate</option><option>Hospital</option><option>School</option><option>College</option><option>Mart</option><option>Custom</option></select></label>
+ <label>Description<textarea placeholder="What does this software manage?"></textarea></label>
+ <button class="primary full" onclick="createProject()">${icon('plus',17)} Create project</button></div></div>`;
+}
+function setPage(p){page=p;mobile=false;render()}
+function setMobile(v){mobile=v;render()}
+function showModal(){show=true;render()}
+function closeModal(){show=false;render()}
+function createProject(){
+ const name=document.getElementById('projectName').value.trim();
+ if(!name){alert('Please enter a project name.');return}
+ projects.push({name,type:'Custom',clients:0,modules:0,status:'Ready',desc:'New reusable ZEVIX project ready for its own modules and clients.'});
+ show=false;page='Projects';render();
+}
+render();
 </script>
 </body>
 </html>
