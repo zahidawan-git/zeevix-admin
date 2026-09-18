@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hafiz Building Material — Accounting System</title>
+<style>
+  :root{
+    --ink:#1E2124;
+    --ink-soft:#565D64;
+    --paper:#EEF0F1;
+    --card:#FFFFFF;
+    --line:#DADFE2;
+    --sidebar:#20262B;
+    --sidebar-soft:#8B949C;
+    --sidebar-line:#323B42;
+    --brick:#B0472E;
+    --brick-dark:#8E3A25;
+    --amber:#C08A29;
+    --amber-bg:#FBF1DD;
+    --green:#3F7A56;
+    --green-bg:#E7F3EC;
+    --red-bg:#FBEAE6;
+    --font-head:'Sora', 'Segoe UI', Arial, sans-serif;
+    --font-body:'Inter', 'Segoe UI', Arial, sans-serif;
+    --font-mono:'IBM Plex Mono', 'Consolas', monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--font-body);
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--brick);color:#fff;}
+
+  /* ---------- Layout ---------- */
+  .app{display:flex;min-height:100vh;}
+  .sidebar{
+    width:236px;flex-shrink:0;
+    background:var(--sidebar);
+    color:var(--sidebar-soft);
+    display:flex;flex-direction:column;
+    position:sticky;top:0;height:100vh;
+  }
+  .brand{
+    padding:22px 20px 16px 20px;
+    border-bottom:1px solid var(--sidebar-line);
+    background-image:repeating-linear-gradient(0deg, rgba(176,71,46,.18) 0 3px, transparent 3px 9px);
+    background-size:100% 9px;background-position:bottom;
+  }
+  .brand-name{
+    font-family:var(--font-head);font-weight:700;color:#fff;
+    font-size:17px;line-height:1.25;letter-spacing:.2px;
+  }
+  .brand-tag{font-size:11px;color:var(--brick);margin-top:6px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+  .brand-meta{font-size:11.5px;color:var(--sidebar-soft);margin-top:10px;line-height:1.6;}
+  nav{padding:14px 10px;flex:1;overflow-y:auto;}
+  .nav-btn{
+    display:flex;align-items:center;gap:10px;width:100%;
+    background:none;border:none;color:var(--sidebar-soft);
+    font-family:var(--font-body);font-size:13.5px;font-weight:500;
+    padding:10px 12px;border-radius:7px;cursor:pointer;text-align:left;
+    margin-bottom:2px;transition:background .12s,color .12s;
+  }
+  .nav-btn:hover{background:#2A3138;color:#fff;}
+  .nav-btn.active{background:var(--brick);color:#fff;}
+  .nav-icon{width:16px;text-align:center;font-size:14px;opacity:.9;}
+  .nav-group-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:#5B646C;padding:14px 12px 4px 12px;}
+  .sidebar-footer{padding:14px 18px;border-top:1px solid var(--sidebar-line);font-size:10.5px;color:#5B646C;}
+
+  main{flex:1;padding:26px 32px 60px 32px;max-width:1180px;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+  .page-title{font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--ink);}
+  .page-sub{font-size:12.5px;color:var(--ink-soft);margin-top:3px;}
+
+  /* ---------- Cards / grid ---------- */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  @media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr);}}
+  .stat-card{
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:16px 16px 14px 16px;position:relative;overflow:hidden;
+  }
+  .stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--brick);}
+  .stat-card.warn::before{background:var(--amber);}
+  .stat-card.good::before{background:var(--green);}
+  .stat-label{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.4px;font-weight:600;}
+  .stat-value{font-family:var(--font-mono);font-size:23px;font-weight:600;margin-top:8px;font-variant-numeric:tabular-nums;}
+  .stat-sub{font-size:11px;color:var(--ink-soft);margin-top:4px;}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:18px;}
+  .card-title{font-family:var(--font-head);font-size:14.5px;font-weight:700;margin:0 0 12px 0;display:flex;justify-content:space-between;align-items:center;}
+
+  /* ---------- Forms ---------- */
+  label{display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px;}
+  input[type=text],input[type=number],input[type=date],input[type=tel],select,textarea{
+    width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;
+    font-family:var(--font-body);font-size:13.5px;background:#fff;color:var(--ink);
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brick);outline-offset:0;border-color:var(--brick);}
+  .field{margin-bottom:12px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  .row-auto{display:grid;grid-template-columns:2.2fr 1fr 1fr 1fr auto;gap:8px;align-items:end;}
+  @media(max-width:800px){.row2,.row3{grid-template-columns:1fr;}.row-auto{grid-template-columns:1fr;}}
+
+  button{cursor:pointer;font-family:var(--font-body);}
+  .btn{
+    background:var(--ink);color:#fff;border:none;border-radius:6px;
+    padding:9px 16px;font-size:13px;font-weight:600;
+  }
+  .btn:hover{background:#000;}
+  .btn-brick{background:var(--brick);}
+  .btn-brick:hover{background:var(--brick-dark);}
+  .btn-green{background:var(--green);}
+  .btn-ghost{background:none;border:1px solid var(--line);color:var(--ink);}
+  .btn-ghost:hover{border-color:var(--ink);}
+  .btn-sm{padding:5px 10px;font-size:12px;border-radius:5px;}
+  .btn-danger{background:#fff;color:var(--brick-dark);border:1px solid var(--brick);}
+  .btn-danger:hover{background:var(--red-bg);}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+
+  /* ---------- Tables ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;
+    color:var(--ink-soft);border-bottom:2px solid var(--line);padding:8px 10px;font-weight:700;
+  }
+  tbody td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tbody tr:hover{background:#F8F6F3;}
+  .num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;text-align:right;}
+  .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;letter-spacing:.2px;}
+  .tag-due{background:var(--red-bg);color:var(--brick-dark);}
+  .tag-clear{background:var(--green-bg);color:var(--green);}
+  .tag-advance{background:var(--amber-bg);color:var(--amber);}
+  .tag-sale{background:#EAF0FB;color:#33538C;}
+  .tag-payment{background:var(--green-bg);color:var(--green);}
+  .link-btn{background:none;border:none;color:var(--brick);font-weight:600;font-size:12.5px;padding:0;text-decoration:underline;}
+  .empty-state{padding:34px 10px;text-align:center;color:var(--ink-soft);font-size:13px;}
+  .search-bar{display:flex;gap:8px;margin-bottom:14px;}
+  .search-bar input{max-width:280px;}
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{
+    display:none;position:fixed;inset:0;background:rgba(20,22,24,.55);
+    align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal-backdrop.show{display:flex;}
+  .modal{background:#fff;border-radius:10px;padding:22px 24px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;}
+  .modal h3{font-family:var(--font-head);margin:0 0 14px 0;font-size:16px;}
+  .modal-close-row{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+
+  .toast{
+    position:fixed;bottom:22px;right:22px;background:var(--ink);color:#fff;
+    padding:11px 18px;border-radius:8px;font-size:13px;font-weight:500;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:200;opacity:0;transform:translateY(8px);
+    transition:opacity .2s,transform .2s;pointer-events:none;
+  }
+  .toast.show{opacity:1;transform:translateY(0);}
+  .toast.err{background:var(--brick-dark);}
+
+  .helper{font-size:11.5px;color:var(--ink-soft);margin-top:4px;}
+  .divider{height:1px;background:var(--line);margin:16px 0;}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;}
+  .balance-big{font-family:var(--font-mono);font-size:26px;font-weight:700;}
+  .pill-select{display:flex;gap:6px;margin-top:4px;}
+  .pill-select button{flex:1;}
+
+  /* ---------- Print ---------- */
+  #printArea{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{display:block !important;position:absolute;top:0;left:0;width:100%;padding:20px;}
+    .no-print{display:none !important;}
+  }
+  .receipt-head{text-align:center;border-bottom:2px dashed #333;padding-bottom:10px;margin-bottom:12px;}
+  .receipt-head .co{font-family:var(--font-head);font-size:20px;font-weight:800;}
+  .receipt-head .tag{background:none;color:#666;font-size:11px;}
+  .receipt-meta{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:10px;}
+  .receipt-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:10px;}
+  .receipt-table th,.receipt-table td{border-bottom:1px solid #ccc;padding:6px 4px;text-align:left;}
+  .receipt-totals{font-size:13px;margin-left:auto;width:60%;}
+  .receipt-totals div{display:flex;justify-content:space-between;padding:3px 0;}
+  .receipt-totals .grand{font-weight:800;border-top:1px solid #333;margin-top:4px;padding-top:6px;font-size:15px;}
+  .receipt-foot{text-align:center;margin-top:16px;font-size:11px;color:#555;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar no-print">
+    <div class="brand">
+      <div class="brand-name" id="sbCompanyName">Hafiz Building Material</div>
+      <div class="brand-tag">Accounting Ledger</div>
+      <div class="brand-meta" id="sbCompanyMeta">03335581827<br>TopCity-1</div>
+    </div>
+    <nav>
+      <div class="nav-group-label">Overview</div>
+      <button class="nav-btn active" data-view="dashboard"><span class="nav-icon">&#9632;</span> Dashboard</button>
+
+      <div class="nav-group-label">Entries</div>
+      <button class="nav-btn" data-view="newsale"><span class="nav-icon">&#43;</span> New Sale</button>
+      <button class="nav-btn" data-view="newpayment"><span class="nav-icon">&#8595;</span> Receive Payment</button>
+
+      <div class="nav-group-label">Records</div>
+      <button class="nav-btn" data-view="customers"><span class="nav-icon">&#9776;</span> Customers</button>
+      <button class="nav-btn" data-view="ledger"><span class="nav-icon">&#128196;</span> Customer Ledger</button>
+      <button class="nav-btn" data-view="transactions"><span class="nav-icon">&#8646;</span> All Transactions</button>
+
+      <div class="nav-group-label">Insights</div>
+      <button class="nav-btn" data-view="reports"><span class="nav-icon">&#128200;</span> Reports</button>
+
+      <div class="nav-group-label">Setup</div>
+      <button class="nav-btn" data-view="settings"><span class="nav-icon">&#9881;</span> Items &amp; Settings</button>
+    </nav>
+    <div class="sidebar-footer">Data is saved automatically in this browser on this device.</div>
+  </aside>
+
+  <main>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-sub" id="todayLabel"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-brick" onclick="showView('newsale')">+ New Sale</button>
+          <button class="btn btn-ghost" onclick="showView('newpayment')">Receive Payment</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="stat-card warn">
+          <div class="stat-label">Total Receivable (Due)</div>
+          <div class="stat-value" id="statTotalDue">Rs. 0</div>
+          <div class="stat-sub" id="statCustDue">0 customers with balance</div>
+        </div>
+        <div class="stat-card good">
+          <div class="stat-label">Total Received (All Time)</div>
+          <div class="stat-value" id="statTotalReceived">Rs. 0</div>
+          <div class="stat-sub">Cash + payments collected</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Sales (All Time)</div>
+          <div class="stat-value" id="statTotalSales">Rs. 0</div>
+          <div class="stat-sub" id="statTxCount">0 transactions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Today</div>
+          <div class="stat-value" id="statToday">Rs. 0</div>
+          <div class="stat-sub" id="statTodaySub">sales · Rs. 0 collected</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Top Outstanding Customers <button class="link-btn" onclick="showView('reports');setReportTab('receivables')">View full list &rarr;</button></div>
+        <table>
+          <thead><tr><th>Customer</th><th>Phone</th><th>Last Activity</th><th class="num">Balance Due</th></tr></thead>
+          <tbody id="dashTopDebtors"></tbody>
+        </table>
+        <div class="empty-state" id="dashDebtorsEmpty" style="display:none;">No outstanding balances. Every customer is clear.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recent Transactions <button class="link-btn" onclick="showView('transactions')">View all &rarr;</button></div>
+        <table>
+          <thead><tr><th>Date</th><th>Customer</th><th>Type</th><th class="num">Amount</th></tr></thead>
+          <tbody id="dashRecentTx"></tbody>
+        </table>
+        <div class="empty-state" id="dashTxEmpty" style="display:none;">No transactions recorded yet. Start with a New Sale.</div>
+      </div>
+    </section>
+
+    <!-- NEW SALE -->
+    <section class="view" id="view-newsale">
+      <div class="page-head">
+        <div>
+          <div class="page-title">New Sale</div>
+          <div class="page-sub">Record a delivery of building material to a customer, cash or credit.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row2">
+          <div class="field">
+            <label>Customer</label>
+            <select id="saleCustomer"></select>
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="saleDate">
+          </div>
+        </div>
+        <button class="btn btn-sm btn-ghost" onclick="openCustomerModal()">+ Add New Customer</button>
+
+        <div class="divider"></div>
+
+        <label>Items</label>
+        <div id="saleRows"></div>
+        <button class="btn btn-sm btn-ghost" onclick="addSaleRow()" style="margin-top:6px;">+ Add Item Row</button>
+
+        <div class="divider"></div>
+
+        <div class="row3">
+          <div class="field">
+            <label>Grand Total</label>
+            <input type="text" id="saleGrandTotal" class="num" readonly style="font-family:var(--font-mono);font-weight:700;font-size:16px;">
+          </div>
+          <div class="field">
+            <label>Amount Paid Now</label>
+            <input type="number" id="salePaid" min="0" step="1" value="0" oninput="recalcSale()">
+          </div>
+          <div class="field">
+            <label>Balance Due</label>
+            <input type="text" id="saleBalance" class="num" readonly style="font-family:var(--font-mono);font-weight:700;font-size:16px;">
+          </div>
+        </div>
+        <div class="pill-select">
+          <button class="btn btn-sm btn-ghost" onclick="setSalePaidFull()">Paid in Full</button>
+          <button class="btn btn-sm btn-ghost" onclick="setSalePaidZero()">Full Credit (No Payment)</button>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+          <label>Notes (optional)</label>
+          <textarea id="saleNotes" rows="2" placeholder="Vehicle no, site address, delivery notes..."></textarea>
+        </div>
+
+        <div class="btn-row" style="margin-top:10px;">
+          <button class="btn btn-brick" onclick="saveSale()">Save Sale</button>
+          <button class="btn btn-ghost" onclick="resetSaleForm()">Clear Form</button>
+        </div>
+        <div id="saleError" class="helper" style="color:var(--brick-dark);"></div>
+      </div>
+    </section>
+
+    <!-- NEW PAYMENT -->
+    <section class="view" id="view-newpayment">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Receive Payment</div>
+          <div class="page-sub">Record cash or bank payment received from a customer against their balance.</div>
+        </div>
+      </div>
+
+      <div class="card" style="max-width:520px;">
+        <div class="field">
+          <label>Customer</label>
+          <select id="paymentCustomer" onchange="updatePaymentDueDisplay()"></select>
+        </div>
+        <div class="flex-between" style="background:var(--paper);border-radius:8px;padding:10px 14px;margin-bottom:14px;">
+          <span style="font-size:12.5px;color:var(--ink-soft);">Current Balance Due</span>
+          <span class="balance-big" id="paymentCurrentDue">Rs. 0</span>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="paymentDate">
+          </div>
+          <div class="field">
+            <label>Method</label>
+            <select id="paymentMethod">
+              <option>Cash</option>
+              <option>Bank Transfer</option>
+              <option>Cheque</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Amount Received</label>
+          <input type="number" id="paymentAmount" min="0" step="1" oninput="updatePaymentDueDisplay()">
+        </div>
+        <div class="field">
+          <label>Notes (optional)</label>
+          <textarea id="paymentNotes" rows="2"></textarea>
+        </div>
+        <div class="helper" id="paymentAfter" style="margin-bottom:10px;"></div>
+        <div class="btn-row">
+          <button class="btn btn-green" onclick="savePayment()">Save Payment</button>
+          <button class="btn btn-ghost" onclick="resetPaymentForm()">Clear Form</button>
+        </div>
+        <div id="paymentError" class="helper" style="color:var(--brick-dark);"></div>
+      </div>
+    </section>
+
+    <!-- CUSTOMERS -->
+    <section class="view" id="view-customers">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Customers</div>
+          <div class="page-sub">Every builder / contractor account and their current balance.</div>
+        </div>
+        <button class="btn btn-brick" onclick="openCustomerModal()">+ Add Customer</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="customerSearch" placeholder="Search by name or phone..." oninput="renderCustomers()">
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="num">Balance</th><th>Status</th><th></th></tr></thead>
+          <tbody id="customersTable"></tbody>
+        </table>
+        <div class="empty-state" id="customersEmpty" style="display:none;">No customers yet. Add your first customer to get started.</div>
+      </div>
+    </section>
+
+    <!-- LEDGER -->
+    <section class="view" id="view-ledger">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Customer Ledger</div>
+          <div class="page-sub">Full statement of account — every sale and payment, running balance.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="row2" style="align-items:end;">
+          <div class="field">
+            <label>Select Customer</label>
+            <select id="ledgerCustomer" onchange="renderLedger()"></select>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-ghost" onclick="printStatement()">Print Statement</button>
+          </div>
+        </div>
+      </div>
+      <div class="card" id="ledgerSummaryCard" style="display:none;">
+        <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:0;">
+          <div class="stat-card"><div class="stat-label">Total Sold</div><div class="stat-value" id="ledgerTotalSold" style="font-size:18px;">Rs. 0</div></div>
+          <div class="stat-card good"><div class="stat-label">Total Paid</div><div class="stat-value" id="ledgerTotalPaid" style="font-size:18px;">Rs. 0</div></div>
+          <div class="stat-card warn"><div class="stat-label">Balance Due</div><div class="stat-value" id="ledgerBalance" style="font-size:18px;">Rs. 0</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Date</th><th>Description</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr></thead>
+          <tbody id="ledgerTable"></tbody>
+        </table>
+        <div class="empty-state" id="ledgerEmpty" style="display:none;">Select a customer to view their statement.</div>
+      </div>
+    </section>
+
+    <!-- ALL TRANSACTIONS -->
+    <section class="view" id="view-transactions">
+      <div class="page-head">
+        <div>
+          <div class="page-title">All Transactions</div>
+          <div class="page-sub">Every sale and payment recorded in the system.</div>
+        </div>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="txSearch" placeholder="Search by customer name..." oninput="renderTransactions()">
+        <select id="txTypeFilter" onchange="renderTransactions()" style="max-width:160px;">
+          <option value="all">All Types</option>
+          <option value="sale">Sales Only</option>
+          <option value="payment">Payments Only</option>
+        </select>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Date</th><th>Receipt #</th><th>Customer</th><th>Type</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Due</th><th></th></tr></thead>
+          <tbody id="transactionsTable"></tbody>
+        </table>
+        <div class="empty-state" id="transactionsEmpty" style="display:none;">No transactions match.</div>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="view" id="view-reports">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Reports</div>
+          <div class="page-sub">Daily summary, outstanding receivables, and overall business performance.</div>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-bottom:16px;">
+        <button class="btn btn-ghost" id="repTabDaily" onclick="setReportTab('daily')">Daily Summary</button>
+        <button class="btn btn-ghost" id="repTabReceivables" onclick="setReportTab('receivables')">Outstanding Receivables</button>
+        <button class="btn btn-ghost" id="repTabSummary" onclick="setReportTab('summary')">Business Summary</button>
+      </div>
+
+      <!-- Daily -->
+      <div class="report-panel" id="rep-daily">
+        <div class="card">
+          <div class="row2" style="align-items:end;max-width:420px;">
+            <div class="field"><label>Date</label><input type="date" id="dailyRepDate" onchange="renderDailyReport()"></div>
+            <div><button class="btn btn-ghost" onclick="printDailyReport()">Print</button></div>
+          </div>
+        </div>
+        <div class="grid" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat-card"><div class="stat-label">Sales Today</div><div class="stat-value" id="dailySales" style="font-size:18px;">Rs. 0</div></div>
+          <div class="stat-card good"><div class="stat-label">Collected Today</div><div class="stat-value" id="dailyCollected" style="font-size:18px;">Rs. 0</div></div>
+          <div class="stat-card warn"><div class="stat-label">Credit Given Today</div><div class="stat-value" id="dailyCredit" style="font-size:18px;">Rs. 0</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Transactions on this date</div>
+          <table>
+            <thead><tr><th>Customer</th><th>Type</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Due</th></tr></thead>
+            <tbody id="dailyRepTable"></tbody>
+          </table>
+          <div class="empty-state" id="dailyRepEmpty" style="display:none;">No transactions on this date.</div>
+        </div>
+      </div>
+
+      <!-- Receivables -->
+      <div class="report-panel" id="rep-receivables" style="display:none;">
+        <div class="card">
+          <div class="flex-between">
+            <div class="card-title" style="margin:0;">Customers with Outstanding Balance</div>
+            <button class="btn btn-ghost btn-sm" onclick="printReceivablesReport()">Print</button>
+          </div>
+          <table style="margin-top:10px;">
+            <thead><tr><th>#</th><th>Customer</th><th>Phone</th><th>Last Activity</th><th class="num">Balance Due</th></tr></thead>
+            <tbody id="receivablesTable"></tbody>
+          </table>
+          <div class="empty-state" id="receivablesEmpty" style="display:none;">No outstanding receivables. All customers are clear.</div>
+          <div class="divider"></div>
+          <div class="flex-between"><strong>Total Outstanding</strong><span class="balance-big" id="receivablesGrandTotal">Rs. 0</span></div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="report-panel" id="rep-summary" style="display:none;">
+        <div class="grid">
+          <div class="stat-card"><div class="stat-label">Total Sales</div><div class="stat-value" id="sumTotalSales">Rs. 0</div></div>
+          <div class="stat-card good"><div class="stat-label">Total Received</div><div class="stat-value" id="sumTotalReceived">Rs. 0</div></div>
+          <div class="stat-card warn"><div class="stat-label">Total Outstanding</div><div class="stat-value" id="sumTotalDue">Rs. 0</div></div>
+          <div class="stat-card"><div class="stat-label">Total Customers</div><div class="stat-value" id="sumCustCount">0</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Sales by Item</div>
+          <table>
+            <thead><tr><th>Item</th><th class="num">Qty Sold</th><th class="num">Total Value</th></tr></thead>
+            <tbody id="sumItemsTable"></tbody>
+          </table>
+          <div class="empty-state" id="sumItemsEmpty" style="display:none;">No sales recorded yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="view" id="view-settings">
+      <div class="page-head">
+        <div>
+          <div class="page-title">Items &amp; Settings</div>
+          <div class="page-sub">Manage your material list, company details, and data backup.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Company Details</div>
+        <div class="row3">
+          <div class="field"><label>Company Name</label><input type="text" id="setCompanyName"></div>
+          <div class="field"><label>Phone</label><input type="text" id="setCompanyPhone"></div>
+          <div class="field"><label>Address</label><input type="text" id="setCompanyAddress"></div>
+        </div>
+        <button class="btn btn-brick btn-sm" onclick="saveCompanySettings()">Save Company Details</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Material / Item List <button class="btn btn-sm btn-ghost" onclick="openItemModal()">+ Add Item</button></div>
+        <table>
+          <thead><tr><th>Item</th><th>Unit</th><th class="num">Default Price</th><th></th></tr></thead>
+          <tbody id="itemsTable"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Data Backup</div>
+        <p class="helper" style="margin-top:0;">Your data auto-saves in this browser. As an extra safety net, you can export a backup file and import it later or on another device.</p>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="exportBackup()">Export Backup (.json)</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">Import Backup</button>
+          <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importBackup(event)">
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Customer Modal -->
+<div class="modal-backdrop no-print" id="customerModal">
+  <div class="modal">
+    <h3 id="customerModalTitle">Add Customer</h3>
+    <input type="hidden" id="customerEditId">
+    <div class="field"><label>Name *</label><input type="text" id="custName"></div>
+    <div class="field"><label>Phone</label><input type="tel" id="custPhone"></div>
+    <div class="field"><label>Address / Site</label><input type="text" id="custAddress"></div>
+    <div id="customerModalError" class="helper" style="color:var(--brick-dark);"></div>
+    <div class="modal-close-row">
+      <button class="btn btn-ghost" onclick="closeModal('customerModal')">Cancel</button>
+      <button class="btn btn-brick" onclick="saveCustomerModal()">Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Item Modal -->
+<div class="modal-backdrop no-print" id="itemModal">
+  <div class="modal">
+    <h3 id="itemModalTitle">Add Item</h3>
+    <input type="hidden" id="itemEditId">
+    <div class="field"><label>Item Name *</label><input type="text" id="itemName"></div>
+    <div class="field"><label>Unit (bag, trolley, trip, ton...)</label><input type="text" id="itemUnit"></div>
+    <div class="field"><label>Default Price (Rs.)</label><input type="number" id="itemPrice" min="0" step="1"></div>
+    <div id="itemModalError" class="helper" style="color:var(--brick-dark);"></div>
+    <div class="modal-close-row">
+      <button class="btn btn-ghost" onclick="closeModal('itemModal')">Cancel</button>
+      <button class="btn btn-brick" onclick="saveItemModal()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-backdrop no-print" id="confirmModal">
+  <div class="modal">
+    <h3 id="confirmModalTitle">Are you sure?</h3>
+    <p id="confirmModalText" style="font-size:13.5px;color:var(--ink-soft);"></p>
+    <div class="modal-close-row">
+      <button class="btn btn-ghost" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn btn-danger" id="confirmModalYes">Yes, Continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast no-print" id="toast"></div>
+
+<!-- PRINT AREA -->
+<div id="printArea"></div>
+
+<script>
+/* =====================================================
+   HAFIZ BUILDING MATERIAL — ACCOUNTING SYSTEM
+   Single-file, offline, browser-localStorage based.
+===================================================== */
+
+const STORAGE_KEY = 'hbm_accounting_v1';
+
+function defaultData(){
+  return {
+    meta:{
+      company:{ name:'Hafiz Building Material', phone:'03335581827', address:'TopCity-1' },
+      receiptCounter:1001,
+      idCounter:1
+    },
+    items:[
+      {id:'itm_cement', name:'Cement', unit:'Bag', price:0, active:true},
+      {id:'itm_rait', name:'Rait (Sand)', unit:'Trolley', price:0, active:true},
+      {id:'itm_bajri', name:'Bajri (Gravel)', unit:'Trolley', price:0, active:true},
+      {id:'itm_loader', name:'Loader Carriage', unit:'Trip', price:0, active:true}
+    ],
+    customers:[],
+    transactions:[]
+  };
+}
+
+let state = loadData();
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && parsed.items && parsed.customers && parsed.transactions){
+        return parsed;
+      }
+    }
+  }catch(e){ console.error('Load error', e); }
+  return defaultData();
+}
+
+function saveData(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return true;
+  }catch(e){
+    console.error('Save error', e);
+    showToast('Could not save data. Your browser storage may be full.', true);
+    return false;
+  }
+}
+
+function nextId(prefix){
+  state.meta.idCounter = (state.meta.idCounter||1) + 1;
+  return prefix + '_' + Date.now().toString(36) + '_' + state.meta.idCounter;
+}
+
+function nextReceiptNo(){
+  const n = state.meta.receiptCounter || 1001;
+  state.meta.receiptCounter = n + 1;
+  return n;
+}
+
+/* ---------- Utility ---------- */
+function fmtMoney(n){
+  n = Number(n)||0;
+  const neg = n < 0;
+  n = Math.abs(n);
+  const s = n.toLocaleString('en-PK', {maximumFractionDigits:0});
+  return (neg?'-':'') + 'Rs. ' + s;
+}
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+function fmtDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+}
+function showToast(msg, isErr){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr?' err':'');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>{ t.className = 'toast'; }, 2600);
+}
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------- Navigation ---------- */
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+  const renderers = {
+    dashboard: renderDashboard,
+    newsale: prepSaleView,
+    newpayment: prepPaymentView,
+    customers: renderCustomers,
+    ledger: renderLedgerView,
+    transactions: renderTransactions,
+    reports: renderReports,
+    settings: renderSettings
+  };
+  if(renderers[name]) renderers[name]();
+}
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=> showView(btn.dataset.view));
+});
+
+/* ---------- Derived data helpers ---------- */
+function getCustomer(id){ return state.customers.find(c=>c.id===id); }
+function getItem(id){ return state.items.find(i=>i.id===id); }
+
+// Build full ledger rows (across all customers) for a single customer, chronological
+function ledgerRowsFor(customerId){
+  const txs = state.transactions.filter(t=>t.customerId===customerId).slice();
+  txs.sort((a,b)=> (a.date===b.date) ? (a.seq-b.seq) : (a.date<b.date?-1:1) );
+  const rows = [];
+  txs.forEach(t=>{
+    if(t.type==='sale'){
+      const itemDesc = t.items.map(li=> li.name+' x'+li.qty).join(', ');
+      rows.push({date:t.date, desc:'Sale #'+t.receiptNo+' — '+itemDesc, debit:t.total, credit:0, seq:t.seq, ref:t.id});
+      if(t.paid>0){
+        rows.push({date:t.date, desc:'Payment at sale #'+t.receiptNo, debit:0, credit:t.paid, seq:t.seq+0.5, ref:t.id});
+      }
+    } else if(t.type==='payment'){
+      rows.push({date:t.date, desc:'Payment received'+(t.method?' ('+t.method+')':'')+(t.notes?' — '+t.notes:''), debit:0, credit:t.amount, seq:t.seq, ref:t.id});
+    }
+  });
+  rows.sort((a,b)=> (a.date===b.date) ? (a.seq-b.seq) : (a.date<b.date?-1:1) );
+  let bal = 0;
+  rows.forEach(r=>{ bal += r.debit - r.credit; r.balance = bal; });
+  return rows;
+}
+
+function customerBalance(customerId){
+  const rows = ledgerRowsFor(customerId);
+  return rows.length ? rows[rows.length-1].balance : 0;
+}
+
+function customerTotals(customerId){
+  const rows = ledgerRowsFor(customerId);
+  let sold=0, paid=0;
+  rows.forEach(r=>{ sold+=r.debit; paid+=r.credit; });
+  return {sold, paid, balance: sold-paid};
+}
+
+function customerLastActivity(customerId){
+  const txs = state.transactions.filter(t=>t.customerId===customerId);
+  if(!txs.length) return '—';
+  txs.sort((a,b)=> a.date<b.date?1:-1);
+  return fmtDate(txs[0].date);
+}
+
+function allCustomersWithBalance(){
+  return state.customers.map(c=>({
+    customer:c,
+    balance: customerBalance(c.id),
+    last: customerLastActivity(c.id)
+  }));
+}
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(){
+  document.getElementById('todayLabel').textContent = 'Today — ' + fmtDate(todayStr());
+
+  let totalSales=0, totalReceived=0;
+  state.transactions.forEach(t=>{
+    if(t.type==='sale'){ totalSales += t.total; totalReceived += t.paid; }
+    else if(t.type==='payment'){ totalReceived += t.amount; }
+  });
+  const totalDue = totalSales - totalReceived;
+
+  const withBal = allCustomersWithBalance();
+  const debtors = withBal.filter(x=>x.balance>0).sort((a,b)=>b.balance-a.balance);
+
+  document.getElementById('statTotalDue').textContent = fmtMoney(totalDue);
+  document.getElementById('statCustDue').textContent = debtors.length + ' customer' + (debtors.length===1?'':'s') + ' with balance';
+  document.getElementById('statTotalReceived').textContent = fmtMoney(totalReceived);
+  document.getElementById('statTotalSales').textContent = fmtMoney(totalSales);
+  document.getElementById('statTxCount').textContent = state.transactions.length + ' transaction' + (state.transactions.length===1?'':'s');
+
+  const t = todayStr();
+  let todaySales=0, todayCollected=0;
+  state.transactions.forEach(tx=>{
+    if(tx.date!==t) return;
+    if(tx.type==='sale'){ todaySales+=tx.total; todayCollected+=tx.paid; }
+    else if(tx.type==='payment'){ todayCollected+=tx.amount; }
+  });
+  document.getElementById('statToday').textContent = fmtMoney(todaySales);
+  document.getElementById('statTodaySub').textContent = 'sales · ' + fmtMoney(todayCollected) + ' collected';
+
+  const topDebtors = debtors.slice(0,6);
+  const tb = document.getElementById('dashTopDebtors');
+  tb.innerHTML = topDebtors.map(x=>`
+    <tr>
+      <td>${escapeHtml(x.customer.name)}</td>
+      <td>${escapeHtml(x.customer.phone||'—')}</td>
+      <td>${x.last}</td>
+      <td class="num">${fmtMoney(x.balance)}</td>
+    </tr>`).join('');
+  document.getElementById('dashDebtorsEmpty').style.display = topDebtors.length? 'none':'block';
+
+  const recent = state.transactions.slice().sort((a,b)=> (a.date===b.date)? b.seq-a.seq : (a.date<b.date?1:-1)).slice(0,8);
+  const rt = document.getElementById('dashRecentTx');
+  rt.innerHTML = recent.map(tx=>{
+    const c = getCustomer(tx.customerId);
+    const amt = tx.type==='sale' ? tx.total : tx.amount;
+    return `<tr>
+      <td>${fmtDate(tx.date)}</td>
+      <td>${escapeHtml(c?c.name:'—')}</td>
+      <td><span class="tag ${tx.type==='sale'?'tag-sale':'tag-payment'}">${tx.type==='sale'?'Sale':'Payment'}</span></td>
+      <td class="num">${fmtMoney(amt)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('dashTxEmpty').style.display = recent.length? 'none':'block';
+}
+
+/* ---------- Customer select population ---------- */
+function populateCustomerSelect(selectEl, includeBalance){
+  const cur = selectEl.value;
+  const sorted = state.customers.slice().sort((a,b)=> a.name.localeCompare(b.name));
+  if(!sorted.length){
+    selectEl.innerHTML = '<option value="">No customers yet — add one first</option>';
+    return;
+  }
+  selectEl.innerHTML = sorted.map(c=>{
+    let label = c.name + (c.phone?' ('+c.phone+')':'');
+    if(includeBalance){
+      const bal = customerBalance(c.id);
+      if(bal>0) label += ' — due ' + fmtMoney(bal);
+      else if(bal<0) label += ' — advance ' + fmtMoney(Math.abs(bal));
+    }
+    return `<option value="${c.id}">${escapeHtml(label)}</option>`;
+  }).join('');
+  if(cur && state.customers.some(c=>c.id===cur)) selectEl.value = cur;
+}
+
+/* ---------- New Sale ---------- */
+let saleRowCount = 0;
+function prepSaleView(){
+  document.getElementById('saleDate').value = document.getElementById('saleDate').value || todayStr();
+  populateCustomerSelect(document.getElementById('saleCustomer'), false);
+  if(document.getElementById('saleRows').children.length===0){
+    addSaleRow();
+  }
+  recalcSale();
+}
+
+function activeItems(){ return state.items.filter(i=>i.active!==false); }
+
+function addSaleRow(){
+  saleRowCount++;
+  const rowId = 'srow_'+saleRowCount;
+  const wrap = document.createElement('div');
+  wrap.className = 'row-auto';
+  wrap.id = rowId;
+  const itemOptions = activeItems().map(i=>`<option value="${i.id}" data-unit="${escapeHtml(i.unit)}" data-price="${i.price}">${escapeHtml(i.name)}</option>`).join('');
+  wrap.innerHTML = `
+    <div class="field" style="margin-bottom:0;">
+      <label>Item</label>
+      <select onchange="onSaleItemChange('${rowId}')" class="s-item">${itemOptions}</select>
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label>Qty</label>
+      <input type="number" class="s-qty" min="0" step="1" value="1" oninput="recalcSale()">
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label>Price / Unit</label>
+      <input type="number" class="s-price" min="0" step="1" value="0" oninput="recalcSale()">
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label>Total</label>
+      <input type="text" class="s-total num" readonly value="Rs. 0">
+    </div>
+    <button class="btn btn-sm btn-danger" onclick="document.getElementById('${rowId}').remove(); recalcSale();">&times;</button>
+  `;
+  document.getElementById('saleRows').appendChild(wrap);
+  onSaleItemChange(rowId);
+}
+
+function onSaleItemChange(rowId){
+  const row = document.getElementById(rowId);
+  const sel = row.querySelector('.s-item');
+  const opt = sel.options[sel.selectedIndex];
+  if(opt){
+    row.querySelector('.s-price').value = opt.dataset.price || 0;
+  }
+  recalcSale();
+}
+
+let salePaidDirty = false;
+document.addEventListener('DOMContentLoaded', ()=>{
+  const pf = document.getElementById('salePaid');
+  if(pf) pf.addEventListener('input', ()=>{ salePaidDirty = true; });
+});
+
+function recalcSale(){
+  let grand = 0;
+  document.querySelectorAll('#saleRows > div').forEach(row=>{
+    const qty = Number(row.querySelector('.s-qty').value)||0;
+    const price = Number(row.querySelector('.s-price').value)||0;
+    const total = qty*price;
+    row.querySelector('.s-total').value = fmtMoney(total);
+    grand += total;
+  });
+  document.getElementById('saleGrandTotal').value = fmtMoney(grand);
+  const paidInput = document.getElementById('salePaid');
+  let paid = Number(paidInput.value)||0;
+  if(paid > grand){ paid = grand; paidInput.value = grand; }
+  const bal = grand - paid;
+  document.getElementById('saleBalance').value = fmtMoney(bal);
+}
+
+function setSalePaidFull(){
+  const grandText = document.getElementById('saleGrandTotal').value.replace(/[^0-9.-]/g,'');
+  document.getElementById('salePaid').value = grandText || 0;
+  recalcSale();
+}
+function setSalePaidZero(){
+  document.getElementById('salePaid').value = 0;
+  recalcSale();
+}
+
+function resetSaleForm(){
+  document.getElementById('saleRows').innerHTML = '';
+  document.getElementById('salePaid').value = 0;
+  document.getElementById('saleNotes').value = '';
+  document.getElementById('saleError').textContent = '';
+  addSaleRow();
+  recalcSale();
+}
+
+function saveSale(){
+  const errEl = document.getElementById('saleError');
+  errEl.textContent = '';
+  const customerId = document.getElementById('saleCustomer').value;
+  const date = document.getElementById('saleDate').value || todayStr();
+
+  if(!customerId){
+    errEl.textContent = 'Please select a customer (or add one first).';
+    return;
+  }
+
+  const lineItems = [];
+  document.querySelectorAll('#saleRows > div').forEach(row=>{
+    const sel = row.querySelector('.s-item');
+    const opt = sel.options[sel.selectedIndex];
+    const qty = Number(row.querySelector('.s-qty').value)||0;
+    const price = Number(row.querySelector('.s-price').value)||0;
+    if(qty>0 && opt){
+      lineItems.push({
+        itemId: opt.value,
+        name: opt.textContent,
+        unit: opt.dataset.unit||'',
+        qty, price, total: qty*price
+      });
+    }
+  });
+
+  if(!lineItems.length){
+    errEl.textContent = 'Add at least one item with quantity greater than 0.';
+    return;
+  }
+
+  const grand = lineItems.reduce((s,li)=>s+li.total,0);
+  let paid = Number(document.getElementById('salePaid').value)||0;
+  if(paid < 0) paid = 0;
+  if(paid > grand) paid = grand;
+
+  const tx = {
+    id: nextId('tx'),
+    seq: state.transactions.length+1,
+    type: 'sale',
+    date,
+    customerId,
+    items: lineItems,
+    total: grand,
+    paid,
+    due: grand-paid,
+    receiptNo: nextReceiptNo(),
+    notes: document.getElementById('saleNotes').value.trim()
+  };
+  state.transactions.push(tx);
+  if(!saveData()) return;
+  showToast('Sale saved — Receipt #'+tx.receiptNo);
+  printReceipt(tx);
+  resetSaleForm();
+  renderDashboard();
+}
+
+/* ---------- New Payment ---------- */
+function prepPaymentView(){
+  document.getElementById('paymentDate').value = document.getElementById('paymentDate').value || todayStr();
+  populateCustomerSelect(document.getElementById('paymentCustomer'), true);
+  updatePaymentDueDisplay();
+}
+
+function updatePaymentDueDisplay(){
+  const custId = document.getElementById('paymentCustomer').value;
+  const due = custId ? customerBalance(custId) : 0;
+  document.getElementById('paymentCurrentDue').textContent = fmtMoney(due);
+  const amt = Number(document.getElementById('paymentAmount').value)||0;
+  const after = document.getElementById('paymentAfter');
+  if(amt>0){
+    const remaining = due - amt;
+    if(remaining > 0){
+      after.textContent = 'After this payment, balance due will be ' + fmtMoney(remaining) + '.';
+    } else if(remaining < 0){
+      after.textContent = 'This exceeds the current due by ' + fmtMoney(Math.abs(remaining)) + ' — customer will have an advance credit of ' + fmtMoney(Math.abs(remaining)) + '.';
+    } else {
+      after.textContent = 'This payment clears the balance in full.';
+    }
+  } else {
+    after.textContent = '';
+  }
+}
+
+function resetPaymentForm(){
+  document.getElementById('paymentAmount').value = '';
+  document.getElementById('paymentNotes').value = '';
+  document.getElementById('paymentError').textContent = '';
+  updatePaymentDueDisplay();
+}
+
+function savePayment(){
+  const errEl = document.getElementById('paymentError');
+  errEl.textContent = '';
+  const customerId = document.getElementById('paymentCustomer').value;
+  const date = document.getElementById('paymentDate').value || todayStr();
+  const amount = Number(document.getElementById('paymentAmount').value)||0;
+
+  if(!customerId){ errEl.textContent = 'Please select a customer.'; return; }
+  if(amount<=0){ errEl.textContent = 'Enter a payment amount greater than 0.'; return; }
+
+  const tx = {
+    id: nextId('tx'),
+    seq: state.transactions.length+1,
+    type: 'payment',
+    date,
+    customerId,
+    amount,
+    method: document.getElementById('paymentMethod').value,
+    notes: document.getElementById('paymentNotes').value.trim(),
+    receiptNo: nextReceiptNo()
+  };
+  state.transactions.push(tx);
+  if(!saveData()) return;
+  showToast('Payment recorded.');
+  printPaymentReceipt(tx);
+  resetPaymentForm();
+  populateCustomerSelect(document.getElementById('paymentCustomer'), true);
+  renderDashboard();
+}
+
+/* ---------- Customers ---------- */
+function renderCustomers(){
+  const q = (document.getElementById('customerSearch').value||'').toLowerCase();
+  const rows = allCustomersWithBalance().filter(x=>
+    !q || x.customer.name.toLowerCase().includes(q) || (x.customer.phone||'').includes(q)
+  ).sort((a,b)=> a.customer.name.localeCompare(b.customer.name));
+
+  const tb = document.getElementById('customersTable');
+  tb.innerHTML = rows.map(x=>{
+    let tag = '<span class="tag tag-clear">Clear</span>';
+    if(x.balance>0) tag = '<span class="tag tag-due">Due</span>';
+    else if(x.balance<0) tag = '<span class="tag tag-advance">Advance</span>';
+    return `<tr>
+      <td>${escapeHtml(x.customer.name)}</td>
+      <td>${escapeHtml(x.customer.phone||'—')}</td>
+      <td>${escapeHtml(x.customer.address||'—')}</td>
+      <td class="num">${fmtMoney(x.balance)}</td>
+      <td>${tag}</td>
+      <td>
+        <button class="link-btn" onclick="goToLedger('${x.customer.id}')">Ledger</button>
+        &nbsp;·&nbsp;
+        <button class="link-btn" onclick="openCustomerModal('${x.customer.id}')">Edit</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('customersEmpty').style.display = rows.length? 'none':'block';
+}
+
+function goToLedger(customerId){
+  showView('ledger');
+  document.getElementById('ledgerCustomer').value = customerId;
+  renderLedger();
+}
+
+function openCustomerModal(customerId){
+  document.getElementById('customerModalError').textContent = '';
+  const isEdit = !!customerId;
+  document.getElementById('customerModalTitle').textContent = isEdit ? 'Edit Customer' : 'Add Customer';
+  document.getElementById('customerEditId').value = customerId||'';
+  if(isEdit){
+    const c = getCustomer(customerId);
+    document.getElementById('custName').value = c.name;
+    document.getElementById('custPhone').value = c.phone||'';
+    document.getElementById('custAddress').value = c.address||'';
+  } else {
+    document.getElementById('custName').value='';
+    document.getElementById('custPhone').value='';
+    document.getElementById('custAddress').value='';
+  }
+  document.getElementById('customerModal').classList.add('show');
+}
+
+function saveCustomerModal(){
+  const errEl = document.getElementById('customerModalError');
+  const name = document.getElementById('custName').value.trim();
+  if(!name){ errEl.textContent = 'Customer name is required.'; return; }
+  const editId = document.getElementById('customerEditId').value;
+  const phone = document.getElementById('custPhone').value.trim();
+  const address = document.getElementById('custAddress').value.trim();
+
+  if(editId){
+    const c = getCustomer(editId);
+    c.name = name; c.phone = phone; c.address = address;
+  } else {
+    state.customers.push({ id: nextId('cust'), name, phone, address, createdAt: todayStr() });
+  }
+  if(!saveData()) return;
+  closeModal('customerModal');
+  showToast('Customer saved.');
+  populateCustomerSelect(document.getElementById('saleCustomer'), false);
+  populateCustomerSelect(document.getElementById('paymentCustomer'), true);
+  populateCustomerSelect(document.getElementById('ledgerCustomer'), true);
+  renderCustomers();
+}
+
+/* ---------- Ledger ---------- */
+function renderLedgerView(){
+  populateCustomerSelect(document.getElementById('ledgerCustomer'), true);
+  renderLedger();
+}
+
+function renderLedger(){
+  const custId = document.getElementById('ledgerCustomer').value;
+  const tbody = document.getElementById('ledgerTable');
+  const summaryCard = document.getElementById('ledgerSummaryCard');
+  if(!custId){
+    tbody.innerHTML = '';
+    document.getElementById('ledgerEmpty').style.display = 'block';
+    summaryCard.style.display = 'none';
+    return;
+  }
+  const rows = ledgerRowsFor(custId);
+  document.getElementById('ledgerEmpty').style.display = rows.length? 'none':'block';
+  tbody.innerHTML = rows.map(r=>`
+    <tr>
+      <td>${fmtDate(r.date)}</td>
+      <td>${escapeHtml(r.desc)}</td>
+      <td class="num">${r.debit? fmtMoney(r.debit):'—'}</td>
+      <td class="num">${r.credit? fmtMoney(r.credit):'—'}</td>
+      <td class="num" style="font-weight:700;">${fmtMoney(r.balance)}</td>
+    </tr>`).join('');
+
+  const totals = customerTotals(custId);
+  document.getElementById('ledgerTotalSold').textContent = fmtMoney(totals.sold);
+  document.getElementById('ledgerTotalPaid').textContent = fmtMoney(totals.paid);
+  document.getElementById('ledgerBalance').textContent = fmtMoney(totals.balance);
+  summaryCard.style.display = 'block';
+}
+
+/* ---------- All Transactions ---------- */
+function renderTransactions(){
+  const q = (document.getElementById('txSearch').value||'').toLowerCase();
+  const typeFilter = document.getElementById('txTypeFilter').value;
+  let rows = state.transactions.slice();
+  rows = rows.filter(t=>{
+    const c = getCustomer(t.customerId);
+    const nameMatch = !q || (c && c.name.toLowerCase().includes(q));
+    const typeMatch = typeFilter==='all' || t.type===typeFilter;
+    return nameMatch && typeMatch;
+  });
+  rows.sort((a,b)=> (a.date===b.date)? b.seq-a.seq : (a.date<b.date?1:-1));
+
+  const tb = document.getElementById('transactionsTable');
+  tb.innerHTML = rows.map(t=>{
+    const c = getCustomer(t.customerId);
+    if(t.type==='sale'){
+      return `<tr>
+        <td>${fmtDate(t.date)}</td>
+        <td>#${t.receiptNo}</td>
+        <td>${escapeHtml(c?c.name:'—')}</td>
+        <td><span class="tag tag-sale">Sale</span></td>
+        <td class="num">${fmtMoney(t.total)}</td>
+        <td class="num">${fmtMoney(t.paid)}</td>
+        <td class="num">${fmtMoney(t.due)}</td>
+        <td><button class="link-btn" onclick='reprintSale("${t.id}")'>Print</button></td>
+      </tr>`;
+    } else {
+      return `<tr>
+        <td>${fmtDate(t.date)}</td>
+        <td>#${t.receiptNo}</td>
+        <td>${escapeHtml(c?c.name:'—')}</td>
+        <td><span class="tag tag-payment">Payment</span></td>
+        <td class="num">—</td>
+        <td class="num">${fmtMoney(t.amount)}</td>
+        <td class="num">—</td>
+        <td><button class="link-btn" onclick='reprintPayment("${t.id}")'>Print</button></td>
+      </tr>`;
+    }
+  }).join('');
+  document.getElementById('transactionsEmpty').style.display = rows.length? 'none':'block';
+}
+
+function reprintSale(id){
+  const tx = state.transactions.find(t=>t.id===id);
+  if(tx) printReceipt(tx);
+}
+function reprintPayment(id){
+  const tx = state.transactions.find(t=>t.id===id);
+  if(tx) printPaymentReceipt(tx);
+}
+
+/* ---------- Reports ---------- */
+let currentReportTab = 'daily';
+function setReportTab(tab){
+  currentReportTab = tab;
+  document.getElementById('rep-daily').style.display = tab==='daily' ? 'block':'none';
+  document.getElementById('rep-receivables').style.display = tab==='receivables' ? 'block':'none';
+  document.getElementById('rep-summary').style.display = tab==='summary' ? 'block':'none';
+  ['Daily','Receivables','Summary'].forEach(t=>{
+    document.getElementById('repTab'+t).className = 'btn ' + (tab===t.toLowerCase() ? 'btn-brick':'btn-ghost');
+  });
+  if(tab==='daily') renderDailyReport();
+  if(tab==='receivables') renderReceivablesReport();
+  if(tab==='summary') renderSummaryReport();
+}
+
+function renderReports(){
+  document.getElementById('dailyRepDate').value = document.getElementById('dailyRepDate').value || todayStr();
+  setReportTab(currentReportTab);
+}
+
+function renderDailyReport(){
+  const date = document.getElementById('dailyRepDate').value || todayStr();
+  const rows = state.transactions.filter(t=>t.date===date);
+  let sales=0, collected=0, credit=0;
+  rows.forEach(t=>{
+    if(t.type==='sale'){ sales+=t.total; collected+=t.paid; credit+=t.due; }
+    else if(t.type==='payment'){ collected+=t.amount; }
+  });
+  document.getElementById('dailySales').textContent = fmtMoney(sales);
+  document.getElementById('dailyCollected').textContent = fmtMoney(collected);
+  document.getElementById('dailyCredit').textContent = fmtMoney(credit);
+
+  const tb = document.getElementById('dailyRepTable');
+  tb.innerHTML = rows.map(t=>{
+    const c = getCustomer(t.customerId);
+    if(t.type==='sale'){
+      return `<tr><td>${escapeHtml(c?c.name:'—')}</td><td><span class="tag tag-sale">Sale</span></td><td class="num">${fmtMoney(t.total)}</td><td class="num">${fmtMoney(t.paid)}</td><td class="num">${fmtMoney(t.due)}</td></tr>`;
+    }
+    return `<tr><td>${escapeHtml(c?c.name:'—')}</td><td><span class="tag tag-payment">Payment</span></td><td class="num">—</td><td class="num">${fmtMoney(t.amount)}</td><td class="num">—</td></tr>`;
+  }).join('');
+  document.getElementById('dailyRepEmpty').style.display = rows.length? 'none':'block';
+}
+
+function renderReceivablesReport(){
+  const withBal = allCustomersWithBalance().filter(x=>x.balance>0).sort((a,b)=>b.balance-a.balance);
+  const tb = document.getElementById('receivablesTable');
+  tb.innerHTML = withBal.map((x,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${escapeHtml(x.customer.name)}</td>
+      <td>${escapeHtml(x.customer.phone||'—')}</td>
+      <td>${x.last}</td>
+      <td class="num">${fmtMoney(x.balance)}</td>
+    </tr>`).join('');
+  document.getElementById('receivablesEmpty').style.display = withBal.length? 'none':'block';
+  const grand = withBal.reduce((s,x)=>s+x.balance,0);
+  document.getElementById('receivablesGrandTotal').textContent = fmtMoney(grand);
+}
+
+function renderSummaryReport(){
+  let totalSales=0, totalReceived=0;
+  const itemAgg = {};
+  state.transactions.forEach(t=>{
+    if(t.type==='sale'){
+      totalSales += t.total;
+      totalReceived += t.paid;
+      t.items.forEach(li=>{
+        if(!itemAgg[li.name]) itemAgg[li.name] = {qty:0, value:0, unit:li.unit};
+        itemAgg[li.name].qty += li.qty;
+        itemAgg[li.name].value += li.total;
+      });
+    } else if(t.type==='payment'){
+      totalReceived += t.amount;
+    }
+  });
+  document.getElementById('sumTotalSales').textContent = fmtMoney(totalSales);
+  document.getElementById('sumTotalReceived').textContent = fmtMoney(totalReceived);
+  document.getElementById('sumTotalDue').textContent = fmtMoney(totalSales-totalReceived);
+  document.getElementById('sumCustCount').textContent = state.customers.length;
+
+  const names = Object.keys(itemAgg).sort((a,b)=> itemAgg[b].value-itemAgg[a].value);
+  const tb = document.getElementById('sumItemsTable');
+  tb.innerHTML = names.map(n=>`
+    <tr><td>${escapeHtml(n)}</td><td class="num">${itemAgg[n].qty} ${escapeHtml(itemAgg[n].unit||'')}</td><td class="num">${fmtMoney(itemAgg[n].value)}</td></tr>
+  `).join('');
+  document.getElementById('sumItemsEmpty').style.display = names.length? 'none':'block';
+}
+
+/* ---------- Settings ---------- */
+function renderSettings(){
+  const co = state.meta.company;
+  document.getElementById('setCompanyName').value = co.name;
+  document.getElementById('setCompanyPhone').value = co.phone;
+  document.getElementById('setCompanyAddress').value = co.address;
+  renderItemsTable();
+}
+
+function saveCompanySettings(){
+  state.meta.company = {
+    name: document.getElementById('setCompanyName').value.trim() || 'Company',
+    phone: document.getElementById('setCompanyPhone').value.trim(),
+    address: document.getElementById('setCompanyAddress').value.trim()
+  };
+  if(!saveData()) return;
+  document.getElementById('sbCompanyName').textContent = state.meta.company.name;
+  document.getElementById('sbCompanyMeta').innerHTML = escapeHtml(state.meta.company.phone) + '<br>' + escapeHtml(state.meta.company.address);
+  showToast('Company details saved.');
+}
+
+function renderItemsTable(){
+  const tb = document.getElementById('itemsTable');
+  tb.innerHTML = state.items.map(i=>`
+    <tr style="${i.active===false?'opacity:.5;':''}">
+      <td>${escapeHtml(i.name)}</td>
+      <td>${escapeHtml(i.unit||'—')}</td>
+      <td class="num">${fmtMoney(i.price)}</td>
+      <td>
+        <button class="link-btn" onclick="openItemModal('${i.id}')">Edit</button>
+        &nbsp;·&nbsp;
+        <button class="link-btn" onclick="toggleItemActive('${i.id}')">${i.active===false?'Reactivate':'Deactivate'}</button>
+      </td>
+    </tr>`).join('');
+}
+
+function toggleItemActive(id){
+  const it = getItem(id);
+  it.active = it.active===false ? true : false;
+  saveData();
+  renderItemsTable();
+}
+
+function openItemModal(itemId){
+  document.getElementById('itemModalError').textContent = '';
+  const isEdit = !!itemId;
+  document.getElementById('itemModalTitle').textContent = isEdit ? 'Edit Item' : 'Add Item';
+  document.getElementById('itemEditId').value = itemId||'';
+  if(isEdit){
+    const it = getItem(itemId);
+    document.getElementById('itemName').value = it.name;
+    document.getElementById('itemUnit').value = it.unit||'';
+    document.getElementById('itemPrice').value = it.price||0;
+  } else {
+    document.getElementById('itemName').value = '';
+    document.getElementById('itemUnit').value = '';
+    document.getElementById('itemPrice').value = '';
+  }
+  document.getElementById('itemModal').classList.add('show');
+}
+
+function saveItemModal(){
+  const errEl = document.getElementById('itemModalError');
+  const name = document.getElementById('itemName').value.trim();
+  if(!name){ errEl.textContent = 'Item name is required.'; return; }
+  const editId = document.getElementById('itemEditId').value;
+  const unit = document.getElementById('itemUnit').value.trim();
+  const price = Number(document.getElementById('itemPrice').value)||0;
+
+  if(editId){
+    const it = getItem(editId);
+    it.name = name; it.unit = unit; it.price = price;
+  } else {
+    state.items.push({id: nextId('itm'), name, unit, price, active:true});
+  }
+  if(!saveData()) return;
+  closeModal('itemModal');
+  showToast('Item saved.');
+  renderItemsTable();
+}
+
+/* ---------- Backup / Restore ---------- */
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'hafiz_building_material_backup_' + todayStr() + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Backup downloaded.');
+}
+
+function importBackup(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const parsed = JSON.parse(e.target.result);
+      if(!parsed.items || !parsed.customers || !parsed.transactions){
+        throw new Error('Invalid backup file');
+      }
+      openConfirm('Import Backup', 'This will replace ALL current data with the backup file. This cannot be undone. Continue?', ()=>{
+        state = parsed;
+        saveData();
+        showToast('Backup imported successfully.');
+        renderDashboard();
+        renderSettings();
+        showView('dashboard');
+      });
+    }catch(err){
+      showToast('Could not read backup file. Make sure it is a valid export.', true);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+/* ---------- Modals ---------- */
+function closeModal(id){
+  document.getElementById(id).classList.remove('show');
+}
+function openConfirm(title, text, onYes){
+  document.getElementById('confirmModalTitle').textContent = title;
+  document.getElementById('confirmModalText').textContent = text;
+  const btn = document.getElementById('confirmModalYes');
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  newBtn.addEventListener('click', ()=>{ closeModal('confirmModal'); onYes(); });
+  document.getElementById('confirmModal').classList.add('show');
+}
+
+/* ---------- Printing ---------- */
+function printReceipt(tx){
+  const c = getCustomer(tx.customerId);
+  const co = state.meta.company;
+  const rowsHtml = tx.items.map(li=>`
+    <tr><td>${escapeHtml(li.name)}</td><td>${li.qty} ${escapeHtml(li.unit||'')}</td><td style="text-align:right;">${fmtMoney(li.price)}</td><td style="text-align:right;">${fmtMoney(li.total)}</td></tr>
+  `).join('');
+  const html = `
+    <div class="receipt-head">
+      <div class="co">${escapeHtml(co.name)}</div>
+      <div class="tag">${escapeHtml(co.phone)} · ${escapeHtml(co.address)}</div>
+    </div>
+    <div class="receipt-meta">
+      <div><strong>Receipt #${tx.receiptNo}</strong><br>Date: ${fmtDate(tx.date)}</div>
+      <div style="text-align:right;"><strong>${escapeHtml(c?c.name:'—')}</strong><br>${escapeHtml(c&&c.phone?c.phone:'')}</div>
+    </div>
+    <table class="receipt-table">
+      <thead><tr><th>Item</th><th>Qty</th><th style="text-align:right;">Price</th><th style="text-align:right;">Total</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <div class="receipt-totals">
+      <div class="grand"><span>Grand Total</span><span>${fmtMoney(tx.total)}</span></div>
+      <div><span>Paid Now</span><span>${fmtMoney(tx.paid)}</span></div>
+      <div><span>Balance Due</span><span>${fmtMoney(tx.due)}</span></div>
+    </div>
+    ${tx.notes? `<div style="margin-top:10px;font-size:12px;"><strong>Notes:</strong> ${escapeHtml(tx.notes)}</div>` : ''}
+    <div class="receipt-foot">Thank you for your business — ${escapeHtml(co.name)}</div>
+  `;
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
+function printPaymentReceipt(tx){
+  const c = getCustomer(tx.customerId);
+  const co = state.meta.company;
+  const dueAfter = customerBalance(tx.customerId);
+  const html = `
+    <div class="receipt-head">
+      <div class="co">${escapeHtml(co.name)}</div>
+      <div class="tag">${escapeHtml(co.phone)} · ${escapeHtml(co.address)}</div>
+    </div>
+    <div class="receipt-meta">
+      <div><strong>Payment Receipt #${tx.receiptNo}</strong><br>Date: ${fmtDate(tx.date)}</div>
+      <div style="text-align:right;"><strong>${escapeHtml(c?c.name:'—')}</strong><br>${escapeHtml(c&&c.phone?c.phone:'')}</div>
+    </div>
+    <div class="receipt-totals" style="width:100%;">
+      <div class="grand"><span>Amount Received</span><span>${fmtMoney(tx.amount)}</span></div>
+      <div><span>Method</span><span>${escapeHtml(tx.method||'—')}</span></div>
+      <div><span>Balance After Payment</span><span>${fmtMoney(dueAfter)}</span></div>
+    </div>
+    ${tx.notes? `<div style="margin-top:10px;font-size:12px;"><strong>Notes:</strong> ${escapeHtml(tx.notes)}</div>` : ''}
+    <div class="receipt-foot">Thank you — ${escapeHtml(co.name)}</div>
+  `;
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
+function printStatement(){
+  const custId = document.getElementById('ledgerCustomer').value;
+  if(!custId){ showToast('Select a customer first.', true); return; }
+  const c = getCustomer(custId);
+  const co = state.meta.company;
+  const rows = ledgerRowsFor(custId);
+  const totals = customerTotals(custId);
+  const rowsHtml = rows.map(r=>`
+    <tr>
+      <td>${fmtDate(r.date)}</td>
+      <td>${escapeHtml(r.desc)}</td>
+      <td style="text-align:right;">${r.debit? fmtMoney(r.debit):'—'}</td>
+      <td style="text-align:right;">${r.credit? fmtMoney(r.credit):'—'}</td>
+      <td style="text-align:right;">${fmtMoney(r.balance)}</td>
+    </tr>`).join('');
+  const html = `
+    <div class="receipt-head">
+      <div class="co">${escapeHtml(co.name)}</div>
+      <div class="tag">${escapeHtml(co.phone)} · ${escapeHtml(co.address)}</div>
+    </div>
+    <div class="receipt-meta">
+      <div><strong>Statement of Account</strong><br>Printed: ${fmtDate(todayStr())}</div>
+      <div style="text-align:right;"><strong>${escapeHtml(c.name)}</strong><br>${escapeHtml(c.phone||'')}</div>
+    </div>
+    <table class="receipt-table">
+      <thead><tr><th>Date</th><th>Description</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th><th style="text-align:right;">Balance</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <div class="receipt-totals">
+      <div><span>Total Sold</span><span>${fmtMoney(totals.sold)}</span></div>
+      <div><span>Total Paid</span><span>${fmtMoney(totals.paid)}</span></div>
+      <div class="grand"><span>Balance Due</span><span>${fmtMoney(totals.balance)}</span></div>
+    </div>
+    <div class="receipt-foot">${escapeHtml(co.name)}</div>
+  `;
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
+function printDailyReport(){
+  const date = document.getElementById('dailyRepDate').value || todayStr();
+  const rows = state.transactions.filter(t=>t.date===date);
+  const co = state.meta.company;
+  let sales=0, collected=0;
+  const rowsHtml = rows.map(t=>{
+    const c = getCustomer(t.customerId);
+    if(t.type==='sale'){
+      sales+=t.total; collected+=t.paid;
+      return `<tr><td>${escapeHtml(c?c.name:'—')}</td><td>Sale</td><td style="text-align:right;">${fmtMoney(t.total)}</td><td style="text-align:right;">${fmtMoney(t.paid)}</td><td style="text-align:right;">${fmtMoney(t.due)}</td></tr>`;
+    }
+    collected+=t.amount;
+    return `<tr><td>${escapeHtml(c?c.name:'—')}</td><td>Payment</td><td style="text-align:right;">—</td><td style="text-align:right;">${fmtMoney(t.amount)}</td><td style="text-align:right;">—</td></tr>`;
+  }).join('');
+  const html = `
+    <div class="receipt-head">
+      <div class="co">${escapeHtml(co.name)}</div>
+      <div class="tag">Daily Summary — ${fmtDate(date)}</div>
+    </div>
+    <table class="receipt-table">
+      <thead><tr><th>Customer</th><th>Type</th><th style="text-align:right;">Total</th><th style="text-align:right;">Paid</th><th style="text-align:right;">Due</th></tr></thead>
+      <tbody>${rowsHtml || '<tr><td colspan="5" style="text-align:center;">No transactions</td></tr>'}</tbody>
+    </table>
+    <div class="receipt-totals">
+      <div><span>Total Sales</span><span>${fmtMoney(sales)}</span></div>
+      <div class="grand"><span>Total Collected</span><span>${fmtMoney(collected)}</span></div>
+    </div>
+  `;
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
+function printReceivablesReport(){
+  const withBal = allCustomersWithBalance().filter(x=>x.balance>0).sort((a,b)=>b.balance-a.balance);
+  const co = state.meta.company;
+  const rowsHtml = withBal.map((x,i)=>`
+    <tr><td>${i+1}</td><td>${escapeHtml(x.customer.name)}</td><td>${escapeHtml(x.customer.phone||'—')}</td><td style="text-align:right;">${fmtMoney(x.balance)}</td></tr>
+  `).join('');
+  const grand = withBal.reduce((s,x)=>s+x.balance,0);
+  const html = `
+    <div class="receipt-head">
+      <div class="co">${escapeHtml(co.name)}</div>
+      <div class="tag">Outstanding Receivables — ${fmtDate(todayStr())}</div>
+    </div>
+    <table class="receipt-table">
+      <thead><tr><th>#</th><th>Customer</th><th>Phone</th><th style="text-align:right;">Balance Due</th></tr></thead>
+      <tbody>${rowsHtml || '<tr><td colspan="4" style="text-align:center;">No outstanding balances</td></tr>'}</tbody>
+    </table>
+    <div class="receipt-totals">
+      <div class="grand"><span>Total Outstanding</span><span>${fmtMoney(grand)}</span></div>
+    </div>
+  `;
+  document.getElementById('printArea').innerHTML = html;
+  window.print();
+}
+
+/* ---------- Init ---------- */
+function init(){
+  document.getElementById('sbCompanyName').textContent = state.meta.company.name;
+  document.getElementById('sbCompanyMeta').innerHTML = escapeHtml(state.meta.company.phone) + '<br>' + escapeHtml(state.meta.company.address);
+  document.getElementById('saleDate').value = todayStr();
+  document.getElementById('paymentDate').value = todayStr();
+  document.getElementById('dailyRepDate').value = todayStr();
+  renderDashboard();
+  prepSaleView();
+  prepPaymentView();
+}
+init();
+</script>
+</body>
+</html>
